@@ -1,5 +1,4 @@
-# mirai-console-plugin-template
+# 草图大全-草图插件
+一个[Mirai Console](https://github.com/mamoe/mirai-console)插件，提供NLR草图大全的接入
 
-[Mirai Console](https://github.com/mamoe/mirai-console) 插件模板, 使用 Kotlin + Gradle.
-
-[如何使用](https://github.com/project-mirai/how-to-use-plugin-template)
+[草图源站](https://grass.nlrdev.top)

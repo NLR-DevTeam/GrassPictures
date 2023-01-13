@@ -24,10 +24,13 @@ public class GrassPicStatus extends JRawCommand {
         JSONObject jsonObject = new JSONObject(info);
         MessageChain message = new MessageChainBuilder()
                 .append("---==草图信息==---")
+                .append("\n服务状态："+jsonObject.get("service"))
                 .append("\n图片总数："+jsonObject.get("totalImage"))
                 .append("\n待审核图片数："+jsonObject.get("waitImage"))
                 .append("\n调用次数："+jsonObject.get("apiCount"))
-                .append("\n图片总大小："+jsonObject.get("totalImageSizeHuman")).build();
+                .append("\n今日调用次数："+jsonObject.get("apiCountToday"))
+                .append("\n图片总大小："+jsonObject.get("totalImageSizeHuman"))
+                .append("\n今日图片流量"+jsonObject.get("apiFlowTodayHuman")).build();
         sender.sendMessage(message);
     }
 }

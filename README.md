@@ -19,10 +19,13 @@
   **命令功能**：获取当前草图服务器信息 
   
   **权限节点**：`cn.whitrayhb.grasspics:command.grass-pic-status`
+  - 是否正常提供服务
   - 服务器图片总数
   - 待审核图片数
   - 调用次数
+  - 今日调用次数
   - 图片总大小
+  - 今日图片流量
 - **命令名称**：草图投稿
   
   **权限节点**：`cn.whitrayhb.grasspics:command.post-grass-pic`

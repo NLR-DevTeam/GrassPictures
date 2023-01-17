@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "cn.whitrayhb"
-version = "1.0.1"
+version = "1.1.0"
 
 repositories {
     if (System.getenv("CI")?.toBoolean() != true) {
@@ -15,6 +15,8 @@ repositories {
     }
     mavenCentral()
 }
+
 dependencies {
-    implementation("org.json:json:20220320")
+    implementation("org.json:json:20220924")
+    compileOnly("net.mamoe:mirai-core-jvm:2.13.2")
 }

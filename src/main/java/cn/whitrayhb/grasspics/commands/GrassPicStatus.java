@@ -20,17 +20,26 @@ public class GrassPicStatus extends JRawCommand {
 
     @Override
     public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
-        String info = GrassPic.fetchJson("https://grass.nlrdev.top/backend/status");
-        JSONObject jsonObject = new JSONObject(info);
-        MessageChain message = new MessageChainBuilder()
-                .append("---==草图信息==---")
-                .append("\n是否正常提供服务："+jsonObject.get("service"))
-                .append("\n图片总数："+jsonObject.get("totalImage"))
-                .append("\n待审核图片数："+jsonObject.get("waitImage"))
-                .append("\n调用次数："+jsonObject.get("apiCount"))
-                .append("\n今日调用次数："+jsonObject.get("apiCountToday"))
-                .append("\n图片总大小："+jsonObject.get("totalImageSizeHuman"))
-                .append("\n今日图片流量:"+jsonObject.get("apiFlowTodayHuman")).build();
-        sender.sendMessage(message);
+        try {
+            String info = GrassPic.fetchJson("https://grass.nlrdev.top/backend/status");
+            if (info == null) throw new Exception("Failed to fetch GrassPic info!");
+
+            JSONObject jsonObject = new JSONObject(info);
+            MessageChain message = new MessageChainBuilder()
+                    .append("---==草图信息==---")
+                    .append("\n是否正常提供服务：").append(jsonObject.getBoolean("service") ? "是" : "否")
+                    .append("\n图片总数：").append(String.valueOf(jsonObject.get("totalImage")))
+                    .append("\n待审核图片数：").append(String.valueOf(jsonObject.get("waitImage")))
+                    .append("\n调用次数：").append(String.valueOf(jsonObject.get("apiCount")))
+                    .append("\n今日调用次数：").append(String.valueOf(jsonObject.get("apiCountToday")))
+                    .append("\n图片总大小：").append(jsonObject.getString("totalImageSizeHuman"))
+                    .append("\n今日图片流量:").append(jsonObject.getString("apiFlowTodayHuman"))
+                    .build();
+
+            sender.sendMessage(message);
+        } catch (Exception ex) {
+            sender.sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
+            ex.printStackTrace();
+        }
     }
 }

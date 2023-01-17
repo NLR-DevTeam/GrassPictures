@@ -26,7 +26,7 @@
 
 - **如何开始使用本插件?**
   
-  1）下载 [Mirai Console Loader][//github.com/iTXTech/mirai-console-loader]
+  1）下载 [Mirai Console Loader](//github.com/iTXTech/mirai-console-loader)
   
   2）安装前置 [Chat Command](//github.com/project-mirai/chat-command) 插件
   

@@ -14,7 +14,6 @@ import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.SingleMessage;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +23,7 @@ public class PostGrassPic extends JRawCommand {
     private static final ArrayList<User> nextAreYou = new ArrayList<>();
     private static final HashMap<User, Thread> listeningThreads = new HashMap<>();
 
+    @SuppressWarnings("deprecation")
     private PostGrassPic() {
         super(GrasspicsMain.INSTANCE, "post-grass-pic", "投草图", "草图投稿", "投张草图", "投稿草图");
         this.setDescription("草图投稿");
@@ -31,8 +31,6 @@ public class PostGrassPic extends JRawCommand {
         this.setUsage("(/)草图投稿  #草图投稿");
 
         Listener<GroupMessageEvent> listener = GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessageEvent.class, m -> {
-            GrasspicsMain.INSTANCE.getLogger().info(m.getMessage().contentToString());
-
             if (!nextAreYou.contains(m.getSender())) return;
             SingleMessage message = m.getMessage().stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
 
@@ -46,71 +44,108 @@ public class PostGrassPic extends JRawCommand {
 
             String SIMS_USER = KtConfig.SimsoftSecure.INSTANCE.getUser();
             String SIMS_TOKEN = KtConfig.SimsoftSecure.INSTANCE.getToken();
-            if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) return;
+            if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) {
+                m.getGroup().sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务.");
+                return;
+            }
 
             Image image = (Image) message;
             if (image.getSize() > 2048000) {
+                User user = m.getSender();
+
+                nextAreYou.remove(user);
+                if (listeningThreads.containsKey(user)) {
+                    listeningThreads.get(user).interrupt();
+                    listeningThreads.remove(user);
+                }
+
                 m.getGroup().sendMessage("图片太大了, 请压缩一下再投稿!");
                 return;
             }
 
-            try {
-                OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).callTimeout(10, TimeUnit.SECONDS).build();
+            Thread postThread = new Thread(() -> {
+                try {
+                    OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
 
-                // Download Image SYNC
-                String queryURL = Image.queryUrl(image);
-                Request imageDownloadRequest = new Request.Builder().url(queryURL).get().build();
-                Response imageDownloadResponse = client.newCall(imageDownloadRequest).execute();
-                if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
-                byte[] imageBytes = imageDownloadResponse.body().bytes();
+                    // Download Image SYNC
+                    String queryURL = Image.queryUrl(image);
+                    Request imageDownloadRequest = new Request.Builder().url(queryURL).get().build();
+                    Response imageDownloadResponse = client.newCall(imageDownloadRequest).execute();
+                    if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
+                    byte[] imageBytes = imageDownloadResponse.body().bytes();
 
-                // Post Image ASYNC
-                String postURL = "https://i.simsoft.top/grass/nlr/upload";
+                    // Post Image ASYNC
+                    String postURL = "https://i.simsoft.top/grass/nlr/upload";
 
-                MultipartBody.Builder builder = new MultipartBody.Builder();
-                builder.setType(MultipartBody.FORM);
-                builder.addFormDataPart("user", SIMS_USER);
-                builder.addFormDataPart("token", SIMS_TOKEN);
-                builder.addFormDataPart("qq", String.valueOf(m.getSender().getId()));
-                builder.addFormDataPart("file", "file", RequestBody.create(imageBytes));
+                    MultipartBody.Builder builder = new MultipartBody.Builder();
+                    builder.setType(MultipartBody.FORM);
+                    builder.addFormDataPart("user", SIMS_USER);
+                    builder.addFormDataPart("token", SIMS_TOKEN);
+                    builder.addFormDataPart("qq", String.valueOf(m.getSender().getId()));
+                    builder.addFormDataPart("file", "file", RequestBody.create(imageBytes));
 
-                Request imagePostRequest = new Request.Builder().url(postURL).post(builder.build()).build();
-                client.newCall(imagePostRequest).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        m.getGroup().sendMessage("投稿失败, 请到控制台查看详细信息:\n" + e);
-                        e.printStackTrace();
-                    }
+                    Request imagePostRequest = new Request.Builder().url(postURL).post(builder.build()).build();
+                    Response imagePostResponse = client.newCall(imagePostRequest).execute();
 
-                    @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response) {
-                        try {
-                            if (response.body() == null) throw new Exception("Empty response body.");
-                            String code = response.body().string();
+                    try {
+                        if (imagePostResponse.body() == null) throw new Exception("Empty response body.");
+                        String code = imagePostResponse.body().string();
 
-                            switch (code) {
-                                case "200":
-                                    m.getGroup().sendMessage("投稿成功, 正在等待审核.");
-                                    break;
-                                case "401":
-                                    m.getGroup().sendMessage("鉴权信息无效, 请检查配置文件.");
-                                    break;
-                                case "403":
-                                    m.getGroup().sendMessage("图片太大了, 投稿失败.");
-                                    break;
-                            }
-                        } catch (Exception ex) {
-                            m.getGroup().sendMessage("投稿时发生错误, 请到控制台查看详细信息:\n" + ex);
-                            ex.printStackTrace();
+                        switch (code) {
+                            case "200":
+                                m.getGroup().sendMessage("投稿成功, 正在等待审核.");
+                                break;
+                            case "401":
+                                m.getGroup().sendMessage("鉴权信息无效, 请检查配置文件.");
+                                break;
+                            case "403":
+                                m.getGroup().sendMessage("图片太大了, 投稿失败.");
+                                break;
+                            default:
+                                m.getGroup().sendMessage("服务器响应无效: " + code);
+                                break;
                         }
+                    } catch (Exception ex) {
+                        m.getGroup().sendMessage("投稿时发生错误, 请到控制台查看详细信息:\n" + ex);
+                        ex.printStackTrace();
                     }
-                });
 
-                imageDownloadResponse.close();
-            } catch (Exception ex) {
-                m.getGroup().sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
-                ex.printStackTrace();
-            }
+                    User user = m.getSender();
+
+                    nextAreYou.remove(user);
+                    if (listeningThreads.containsKey(user)) {
+                        listeningThreads.get(user).interrupt();
+                        listeningThreads.remove(user);
+                    }
+
+                    imageDownloadResponse.close();
+                } catch (Exception ex) {
+                    m.getGroup().sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
+                    ex.printStackTrace();
+                }
+            });
+            postThread.start();
+
+            new Thread(() -> {
+                try {
+                    Thread.sleep(10 * 1000);
+                } catch (InterruptedException e) {
+                    return;
+                }
+
+                if (!postThread.isAlive()) return;
+                postThread.stop();
+
+                m.getGroup().sendMessage("投稿超时, 请稍后重试!");
+
+                User user = m.getSender();
+
+                nextAreYou.remove(user);
+                if (listeningThreads.containsKey(user)) {
+                    listeningThreads.get(user).interrupt();
+                    listeningThreads.remove(user);
+                }
+            }).start();
         });
 
         listener.start();

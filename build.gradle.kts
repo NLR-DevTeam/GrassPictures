@@ -20,3 +20,7 @@ dependencies {
     implementation("org.json:json:20220924")
     compileOnly("net.mamoe:mirai-core-jvm:2.13.2")
 }
+
+tasks.withType<Jar>() {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

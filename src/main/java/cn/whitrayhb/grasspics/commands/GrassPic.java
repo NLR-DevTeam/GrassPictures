@@ -4,17 +4,21 @@ import cn.whitrayhb.grasspics.Cooler;
 import cn.whitrayhb.grasspics.GrasspicsMain;
 import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.java.JRawCommand;
+import net.mamoe.mirai.internal.deps.okhttp3.OkHttpClient;
+import net.mamoe.mirai.internal.deps.okhttp3.Request;
+import net.mamoe.mirai.internal.deps.okhttp3.Response;
 import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.utils.ExternalResource;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 public class GrassPic extends JRawCommand {
     public static final GrassPic INSTANCE = new GrassPic();
@@ -28,26 +32,21 @@ public class GrassPic extends JRawCommand {
 
     public static String fetchJson(String inURL) {
         try {
-            URL url = new URL(inURL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(3000);
-            conn.setReadTimeout(10000);
-            conn.setRequestProperty("Accept", "application/json");
-            conn.connect();
+            OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).callTimeout(10, TimeUnit.SECONDS).build();
+            Request request = new Request.Builder().url(inURL).get().build();
+            Response res = client.newCall(request).execute();
 
-            if (conn.getResponseCode() == 200) {
-                InputStream is = conn.getInputStream();
-                BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-                conn.disconnect();
-
-                return br.readLine();
-            } else {
-                GrasspicsMain.INSTANCE.getLogger().error("JSON下载失败！状态码为" + conn.getResponseCode());
-                conn.disconnect();
-
+            if (res.code() != 200) {
+                GrasspicsMain.INSTANCE.getLogger().error("JSON下载失败！状态码为" + res.code());
                 return null;
             }
+
+            if (res.body() == null) {
+                GrasspicsMain.INSTANCE.getLogger().error("Unexpected null body.");
+                return null;
+            }
+
+            return res.body().string();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -58,38 +57,37 @@ public class GrassPic extends JRawCommand {
     /**
      * 下载图片
      *
-     * @param inUrl 将要下载的图片的链接
-     * @param path  图片将要保存的位置
      * @return 字符串，为带文件名的图片位置
      */
-    public static String fetchPicture(String inUrl, String path) {
-        String[] arrUrl = inUrl.split("/");
-        String name = arrUrl[arrUrl.length - 1];
-
+    public static String fetchPicture() {
         try {
-            File file = new File(path);
+            File file = new File("./data/cn.whitrayhb.hbsplugin/cache/grasspic/");
             if (!file.exists() && !file.mkdirs()) {
                 GrasspicsMain.INSTANCE.getLogger().error("缓存目录创建失败!");
                 return null;
             }
 
-            URL url = new URL(inUrl);
-            HttpURLConnection httpUrl = (HttpURLConnection) url.openConnection();
-            httpUrl.setConnectTimeout(3000);
-            httpUrl.setReadTimeout(10000);
-            httpUrl.connect();
+            OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).callTimeout(10, TimeUnit.SECONDS).build();
+            Request request = new Request.Builder().url("https://grass.nlrdev.top/backend/info").get().build();
+            Response response = client.newCall(request).execute();
+            if (response.body() == null) throw new Exception("Unexpected null body.");
+            JSONObject jsonObject = new JSONObject(response.body().string());
 
-            Files.copy(httpUrl.getInputStream(), Paths.get(path + "/" + name));
+            Request imageReq = new Request.Builder().url("https://grass.nlrdev.top/backend/image?id=" + jsonObject.getString("id")).get().build();
+            Response imageRes = client.newCall(imageReq).execute();
+            if (imageRes.body() == null) throw new Exception("Unexpected null body.");
 
-            httpUrl.disconnect();
+            Path cachePicturePath = Paths.get("./data/cn.whitrayhb.hbsplugin/cache/grasspic/" + jsonObject.getString("id"));
+            Files.deleteIfExists(cachePicturePath);
+            Files.copy(imageRes.body().byteStream(), cachePicturePath);
+
+            GrasspicsMain.INSTANCE.getLogger().info("图片下载成功！");
+            return "./data/cn.whitrayhb.hbsplugin/cache/grasspic/" + jsonObject.getString("id");
         } catch (Exception e) {
             GrasspicsMain.INSTANCE.getLogger().error("图片下载失败!");
             GrasspicsMain.INSTANCE.getLogger().error(e);
             return null;
         }
-
-        GrasspicsMain.INSTANCE.getLogger().info("图片下载成功！");
-        return path + "/" + name;
     }
 
     @Override
@@ -105,8 +103,7 @@ public class GrassPic extends JRawCommand {
         }
 
         Cooler.lock(sender, 30);
-        String savePath = "./data/cn.whitrayhb.hbsplugin/cache/grasspic/";
-        String picPath = fetchPicture("https://i.simsoft.top/grass/backend/image", savePath);
+        String picPath = fetchPicture();
 
         if (picPath != null) {
             File file = new File(picPath);

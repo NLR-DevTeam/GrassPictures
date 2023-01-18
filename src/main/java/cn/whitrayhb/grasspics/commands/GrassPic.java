@@ -90,6 +90,7 @@ public class GrassPic extends JRawCommand {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
         if (sender.getSubject() == null) {
@@ -103,20 +104,38 @@ public class GrassPic extends JRawCommand {
         }
 
         Cooler.lock(sender, 30);
-        String picPath = fetchPicture();
 
-        if (picPath != null) {
-            File file = new File(picPath);
+        // Open a thread and a watcher
+        Thread getThread = new Thread(() -> {
+            String picPath = fetchPicture();
 
-            ExternalResource resource = ExternalResource.create(file);
-            Image image = sender.getSubject().uploadImage(resource);
-            sender.sendMessage(image);
+            if (picPath != null) {
+                File file = new File(picPath);
 
-            try {
-                resource.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                ExternalResource resource = ExternalResource.create(file);
+                Image image = sender.getSubject().uploadImage(resource);
+                sender.sendMessage(image);
+
+                try {
+                    resource.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        }
+        });
+        getThread.start();
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(10 * 1000);
+            } catch (InterruptedException e) {
+                return;
+            }
+
+            if (!getThread.isAlive()) return;
+            getThread.stop();
+
+            sender.sendMessage("草图获取超时, 请稍后重试!");
+        }).start();
     }
 }

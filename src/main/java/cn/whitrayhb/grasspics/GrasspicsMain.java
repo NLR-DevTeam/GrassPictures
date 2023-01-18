@@ -13,12 +13,12 @@ public final class GrasspicsMain extends JavaPlugin {
 
     private GrasspicsMain() {
         super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.0")
-                .name("草图")
+                .name("草图插件")
                 .info("草图适配插件")
                 .author("NLR DevTeam")
                 .build());
 
-        reloadPluginConfig(KtConfig.SimsoftSecure.INSTANCE);
+        reloadPluginConfig(JavaConfig.INSTANCE);
     }
 
     @Override

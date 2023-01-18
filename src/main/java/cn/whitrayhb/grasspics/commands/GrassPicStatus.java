@@ -27,13 +27,13 @@ public class GrassPicStatus extends JRawCommand {
             JSONObject jsonObject = new JSONObject(info);
             MessageChain message = new MessageChainBuilder()
                     .append("---==草图信息==---")
-                    .append("\n是否正常提供服务：").append(jsonObject.getBoolean("service") ? "是" : "否")
-                    .append("\n图片总数：").append(String.valueOf(jsonObject.get("totalImage")))
-                    .append("\n待审核图片数：").append(String.valueOf(jsonObject.get("waitImage")))
-                    .append("\n调用次数：").append(String.valueOf(jsonObject.get("apiCount")))
-                    .append("\n今日调用次数：").append(String.valueOf(jsonObject.get("apiCountToday")))
-                    .append("\n图片总大小：").append(jsonObject.getString("totalImageSizeHuman"))
-                    .append("\n今日图片流量:").append(jsonObject.getString("apiFlowTodayHuman"))
+                    .append("\n是否正常提供服务: ").append(jsonObject.getBoolean("service") ? "是" : "否")
+                    .append("\n图片总数: ").append(String.valueOf(jsonObject.get("totalImage")))
+                    .append("\n调用次数: ").append(String.valueOf(jsonObject.get("apiCount")))
+                    .append("\n今日调用次数: ").append(String.valueOf(jsonObject.get("apiCountToday")))
+                    .append("\n今日图片流量: ").append(jsonObject.getString("apiFlowTodayHuman"))
+                    .append("\n图片总大小: ").append(jsonObject.getString("totalImageSizeHuman"))
+                    .append("\n审核队列: ").append(jsonObject.getString("waitImage"))
                     .build();
 
             sender.sendMessage(message);

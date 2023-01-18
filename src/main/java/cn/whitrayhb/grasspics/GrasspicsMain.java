@@ -12,7 +12,7 @@ public final class GrasspicsMain extends JavaPlugin {
     public static final GrasspicsMain INSTANCE = new GrasspicsMain();
 
     private GrasspicsMain() {
-        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.0")
+        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.1")
                 .name("草图插件")
                 .info("草图适配插件")
                 .author("NLR DevTeam")

@@ -1,7 +1,8 @@
 package cn.whitrayhb.grasspics.commands;
 
 import cn.whitrayhb.grasspics.GrasspicsMain;
-import cn.whitrayhb.grasspics.JavaConfig;
+import cn.whitrayhb.grasspics.dataconfig.PluginConfig;
+import cn.whitrayhb.grasspics.dataconfig.PluginData;
 import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.java.JRawCommand;
 import net.mamoe.mirai.contact.User;
@@ -14,9 +15,11 @@ import net.mamoe.mirai.message.data.ImageType;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.SingleMessage;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class PostGrassPic extends JRawCommand {
@@ -45,9 +48,9 @@ public class PostGrassPic extends JRawCommand {
                 return;
             }
 
-            String SIMS_USER = JavaConfig.INSTANCE.user.get();
-            String SIMS_TOKEN = JavaConfig.INSTANCE.token.get();
-            if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) {
+            String SIMS_USER = PluginConfig.INSTANCE.user.get();
+            String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
+            if (!GrasspicsMain.shouldUsePublicPostingChannel() && (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty())) {
                 m.getGroup().sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务.");
                 return;
             }
@@ -81,6 +84,11 @@ public class PostGrassPic extends JRawCommand {
                 listeningThreads.remove(user);
             }
 
+            if (GrasspicsMain.shouldUsePublicPostingChannel()) {
+                postToPublicChannel(m, image);
+                return;
+            }
+
             // Open a thread and a watcher
             Thread postThread = new Thread(() -> {
                 try {
@@ -106,27 +114,22 @@ public class PostGrassPic extends JRawCommand {
                     Request imagePostRequest = new Request.Builder().url(postURL).post(builder.build()).build();
                     Response imagePostResponse = client.newCall(imagePostRequest).execute();
 
-                    try {
-                        if (imagePostResponse.body() == null) throw new Exception("Empty response body.");
-                        String code = imagePostResponse.body().string();
+                    if (imagePostResponse.body() == null) throw new Exception("Empty response body.");
+                    String code = imagePostResponse.body().string();
 
-                        switch (code) {
-                            case "200":
-                                m.getGroup().sendMessage("投稿成功, 正在等待审核。");
-                                break;
-                            case "401":
-                                m.getGroup().sendMessage("鉴权信息无效, 请检查配置文件。");
-                                break;
-                            case "403":
-                                m.getGroup().sendMessage("图片太大了, 投稿失败。");
-                                break;
-                            default:
-                                m.getGroup().sendMessage("服务器响应无效: " + code);
-                                break;
-                        }
-                    } catch (Exception ex) {
-                        m.getGroup().sendMessage("投稿时发生错误, 请到控制台查看详细信息:\n" + ex);
-                        ex.printStackTrace();
+                    switch (code) {
+                        case "200":
+                            m.getGroup().sendMessage("投稿成功, 正在等待审核。");
+                            break;
+                        case "401":
+                            m.getGroup().sendMessage("鉴权信息无效, 请检查配置文件。");
+                            break;
+                        case "403":
+                            m.getGroup().sendMessage("图片太大了, 投稿失败。");
+                            break;
+                        default:
+                            m.getGroup().sendMessage("服务器响应无效: " + code);
+                            break;
                     }
 
                     imageDownloadResponse.close();
@@ -160,6 +163,76 @@ public class PostGrassPic extends JRawCommand {
         listener.start();
     }
 
+    public static void postToPublicChannel(GroupMessageEvent m, Image image) {
+        User user = m.getSender();
+
+        // Open a post thread and a watcher
+        Thread postThread = new Thread(() -> {
+            try {
+                OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
+
+                // Download Image
+                String queryURL = Image.queryUrl(image);
+                Request imageDownloadRequest = new Request.Builder().url(queryURL).get().build();
+                Response imageDownloadResponse = client.newCall(imageDownloadRequest).execute();
+                if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
+                byte[] imageBytes = imageDownloadResponse.body().bytes();
+
+                // Post Image
+                String postURL = "https://grass.nlrdev.top/backend/upload";
+
+                MultipartBody.Builder builder = new MultipartBody.Builder();
+                builder.setType(MultipartBody.FORM);
+                builder.addFormDataPart("file", "file", RequestBody.create(imageBytes, MediaType.parse("image/png")));
+
+                Request imagePostRequest = new Request.Builder().url(postURL).post(builder.build()).build();
+                Response imagePostResponse = client.newCall(imagePostRequest).execute();
+
+                if (imagePostResponse.body() == null) throw new Exception("Empty response body.");
+                int code = new JSONObject(imagePostResponse.body().string()).getInt("code");
+
+                switch (code) {
+                    case 200:
+                        m.getGroup().sendMessage("投稿成功, 正在等待审核。");
+                        break;
+                    case 400:
+                        m.getGroup().sendMessage("图片格式无效.");
+                        break;
+                    case 403:
+                        m.getGroup().sendMessage("图片太大，投稿失败。");
+                        break;
+                    default:
+                        m.getGroup().sendMessage("服务器响应无效: " + code);
+                        break;
+                }
+            } catch (Exception ex) {
+                m.getGroup().sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
+                ex.printStackTrace();
+            }
+        });
+        postThread.start();
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(10 * 1000);
+            } catch (InterruptedException e) {
+                return;
+            }
+
+            if (!postThread.isAlive()) return;
+            //noinspection deprecation
+            postThread.stop();
+
+            m.getGroup().sendMessage("投稿超时, 请稍后重试!");
+
+            nextAreYou.remove(user);
+            if (listeningThreads.containsKey(user)) {
+                listeningThreads.get(user).interrupt();
+                listeningThreads.remove(user);
+            }
+        }).start();
+    }
+
     @Override
     public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
         if (sender.getSubject() == null) {
@@ -167,24 +240,30 @@ public class PostGrassPic extends JRawCommand {
             return;
         }
 
-        String SIMS_USER = JavaConfig.INSTANCE.user.get();
-        String SIMS_TOKEN = JavaConfig.INSTANCE.token.get();
+        User user = sender.getUser();
 
-        if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) {
-            sender.sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务.");
+        if (nextAreYou.contains(user) || listeningThreads.containsKey(user)) {
+            sender.sendMessage("您已经在投稿了，请直接把图片发送给我哦。");
             return;
         }
 
-        User user = sender.getUser();
+        if (GrasspicsMain.shouldUsePublicPostingChannel()) {
+            if (!PluginData.INSTANCE.savedQQ.get().contains(Objects.requireNonNull(sender.getUser()).getId())) {
+                PluginData.INSTANCE.savedQQ.get().add(Objects.requireNonNull(sender.getUser()).getId());
+                sender.sendMessage("您第一次向公共投稿通道投稿，请认真阅读以下内容:\n\n" + GrasspicsMain.TEXT_RULES + "\n\n如果您投稿违规内容，机器人的 IP 可能会被封禁.");
+            }
+        } else {
+            String SIMS_USER = PluginConfig.INSTANCE.user.get();
+            String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
 
-        if (listeningThreads.containsKey(user)) {
-            listeningThreads.get(user).interrupt();
-            listeningThreads.remove(user);
+            if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) {
+                sender.sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务.");
+                return;
+            }
         }
 
-        nextAreYou.remove(user);
-        nextAreYou.add(user);
         sender.sendMessage("请把要投稿的图片发送给我吧~");
+        nextAreYou.add(user);
 
         Thread listener = new Thread(() -> {
             try {

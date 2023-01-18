@@ -7,14 +7,15 @@
 
 - [草图官方网站](https://grass.nlrdev.top)
 - [草图开发文档](https://docs.simsoft.top/?doc=grass-dev-doc)
+- [Mirai Forum 介绍帖](https://mirai.mamoe.net/topic/1965/grasspictures-随机获取生草插件)
 
 ## Commands：
 
 |名称|指令|指令功能|权限节点|
 |--|--|--|--|
-|**生草**|草图，来张草图，生草，grass-pic|来一张草图|`cn.whitrayhb.grasspics:command.grass-pic-status`|
-|**草图信息**|草图信息|获取草图服务器信息|`cn.whitrayhb.grasspics:command.grass-pic-status`|
-|**投稿草图**|草图投稿，投稿草图|向草图库投稿|`cn.whitrayhb.grasspics:command.post-grass-pic`|
+|**生草**|<li>草图</li><li>来张草图</li><li>生草</li><li>grass-pic</li>|来一张草图|`cn.whitrayhb.grasspics:command.grass-pic`|
+|**草图信息**|<li>草图信息</li><li>grass-pic-status</li>|获取草图实时状态|`cn.whitrayhb.grasspics:command.grass-pic-status`|
+|**投稿草图**|<li>草图投稿</li><li>投稿草图</li><li>post-grass-pic</li>|向草图库投稿|`cn.whitrayhb.grasspics:command.post-grass-pic`|
 
 <details>
   <summary>效果预览</summary>
@@ -30,9 +31,11 @@
   
   2）安装前置 [Chat Command](//github.com/project-mirai/chat-command) 插件
   
-  3）登录需要使用 Bot 账号
+  3）在 [Releases](//github.com/NLR-DevTeam/GrassPictures/releases) 页面下载最新的 `.jar` 文件，放入 MCL 下 `plugins` 目录下
   
-  4）授予群员相应的权限节点
+  4）在 MCL 中登录需要使用的 Bot 账号
+  
+  5）授予群员相应的权限节点
 - **草图投稿是什么? 如何使用?**
   
-  目前 Bot 中草图投稿使用 NLR DevTeam 内部接口，需要进行账户鉴权，暂不对外开放。
+  目前 Mirai Console 插件中投稿功能已开放公众投稿通道，其投稿要求与主站相同，请不要投稿违规或灌水图片。多次投稿违规图片的用户 IP 可能会被封禁。

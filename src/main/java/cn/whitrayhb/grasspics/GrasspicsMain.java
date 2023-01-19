@@ -8,6 +8,12 @@ import cn.whitrayhb.grasspics.dataconfig.PluginData;
 import net.mamoe.mirai.console.command.CommandManager;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
+import net.mamoe.mirai.internal.deps.okhttp3.*;
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 
 public final class GrasspicsMain extends JavaPlugin {
@@ -34,6 +40,37 @@ public final class GrasspicsMain extends JavaPlugin {
         return usePublicPosting;
     }
 
+    private static void checkUpdate() {
+        INSTANCE.getLogger().info("正在检查更新...");
+        String currentVersion = INSTANCE.getDescription().getVersion().toString();
+
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
+        Request request = new Request.Builder().url("https://api.github.com/repos/NLR-DevTeam/GrassPictures/releases/latest").get().build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                INSTANCE.getLogger().error("检查更新失败!");
+                INSTANCE.getLogger().error(e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.body() == null) throw new RuntimeException("Unexpected null body.");
+                JSONObject jsonObject = new JSONObject(response.body().string());
+                String latestVersion = jsonObject.getString("tag_name");
+
+                if (currentVersion.equals(latestVersion)) {
+                    INSTANCE.getLogger().info("您正在运行最新版本!");
+                    return;
+                }
+
+                INSTANCE.getLogger().info("发现插件更新: v" + latestVersion);
+                INSTANCE.getLogger().info("访问 https://github.com/NLR-DevTeam/GrassPictures/releases/latest 下载最新版本.");
+            }
+        });
+    }
+
     @Override
     public void onEnable() {
         CommandManager.INSTANCE.registerCommand(GrassPic.INSTANCE, true);
@@ -47,5 +84,7 @@ public final class GrasspicsMain extends JavaPlugin {
             getLogger().warning("您正在使用公共投稿通道，如图片违规次数过多，则机器人 IP 就可能会被封禁。");
             getLogger().warning("如果您不希望启用公共投稿，请关闭聊群内投稿权限。");
         }
+
+        checkUpdate();
     }
 }

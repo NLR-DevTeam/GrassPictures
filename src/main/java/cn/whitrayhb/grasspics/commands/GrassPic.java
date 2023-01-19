@@ -61,13 +61,13 @@ public class GrassPic extends JRawCommand {
      */
     public static String fetchPicture() {
         try {
-            File file = new File("./data/cn.whitrayhb.hbsplugin/cache/grasspic/");
+            File file = new File("./data/cn.whitrayhb.grasspics/cache/grasspic/");
             if (!file.exists() && !file.mkdirs()) {
                 GrasspicsMain.INSTANCE.getLogger().error("缓存目录创建失败!");
                 return null;
             }
 
-            OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).callTimeout(10, TimeUnit.SECONDS).build();
+            OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
             Request request = new Request.Builder().url("https://grass.nlrdev.top/backend/info").get().build();
             Response response = client.newCall(request).execute();
             if (response.body() == null) throw new Exception("Unexpected null body.");
@@ -77,12 +77,12 @@ public class GrassPic extends JRawCommand {
             Response imageRes = client.newCall(imageReq).execute();
             if (imageRes.body() == null) throw new Exception("Unexpected null body.");
 
-            Path cachePicturePath = Paths.get("./data/cn.whitrayhb.hbsplugin/cache/grasspic/" + jsonObject.getString("id"));
+            Path cachePicturePath = Paths.get("./data/cn.whitrayhb.grasspics/cache/grasspic/" + jsonObject.getString("id"));
             Files.deleteIfExists(cachePicturePath);
             Files.copy(imageRes.body().byteStream(), cachePicturePath);
 
             GrasspicsMain.INSTANCE.getLogger().info("图片下载成功！");
-            return "./data/cn.whitrayhb.hbsplugin/cache/grasspic/" + jsonObject.getString("id");
+            return "./data/cn.whitrayhb.grasspics/cache/grasspic/" + jsonObject.getString("id");
         } catch (Exception e) {
             GrasspicsMain.INSTANCE.getLogger().error("图片下载失败!");
             GrasspicsMain.INSTANCE.getLogger().error(e);

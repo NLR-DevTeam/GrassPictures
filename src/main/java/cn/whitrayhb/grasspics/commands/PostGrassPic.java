@@ -163,6 +163,7 @@ public class PostGrassPic extends JRawCommand {
         listener.start();
     }
 
+    @SuppressWarnings("deprecation")
     public static void postToPublicChannel(GroupMessageEvent m, Image image) {
         User user = m.getSender();
 
@@ -220,7 +221,6 @@ public class PostGrassPic extends JRawCommand {
             }
 
             if (!postThread.isAlive()) return;
-            //noinspection deprecation
             postThread.stop();
 
             m.getGroup().sendMessage("投稿超时, 请稍后重试!");

@@ -3,8 +3,8 @@ package cn.whitrayhb.grasspics;
 import cn.whitrayhb.grasspics.commands.GrassPic;
 import cn.whitrayhb.grasspics.commands.GrassPicStatus;
 import cn.whitrayhb.grasspics.commands.PostGrassPic;
-import cn.whitrayhb.grasspics.dataconfig.PluginConfig;
-import cn.whitrayhb.grasspics.dataconfig.PluginData;
+import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
+import cn.whitrayhb.grasspics.dataConfig.PluginData;
 import net.mamoe.mirai.console.command.CommandManager;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
@@ -13,16 +13,21 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 
 public final class GrasspicsMain extends JavaPlugin {
+    public static final OkHttpClient globalHttpClient = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
     public static final GrasspicsMain INSTANCE = new GrasspicsMain();
-    public static final String TEXT_RULES = "1.请投稿能使多数人觉得有趣的图片\n" +
-            "2.严禁任何违法、涉政等图片上传\n" +
-            "3.禁止任何色情、擦边等图片上传\n" +
-            "4.禁止任何含有个人广告的图片上传\n" +
-            "5.禁止任何无关图片、灌水内容上传";
+    public static final ExecutorService globalExecutorService = Executors.newFixedThreadPool(8);
+    public static final String TEXT_RULES = """
+            1.请投稿能使多数人觉得有趣的图片
+            2.严禁任何违法、涉政等图片上传
+            3.禁止任何色情、擦边等图片上传
+            4.禁止任何含有个人广告的图片上传
+            5.禁止任何无关图片、灌水内容上传""";
     private static boolean usePublicPosting = false;
 
     private GrasspicsMain() {
@@ -43,11 +48,9 @@ public final class GrasspicsMain extends JavaPlugin {
     private static void checkUpdate() {
         INSTANCE.getLogger().info("正在检查更新...");
         String currentVersion = INSTANCE.getDescription().getVersion().toString();
-
-        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
         Request request = new Request.Builder().url("https://api.github.com/repos/NLR-DevTeam/GrassPictures/releases/latest").get().build();
 
-        client.newCall(request).enqueue(new Callback() {
+        globalHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 INSTANCE.getLogger().error("检查更新失败!");
@@ -73,9 +76,9 @@ public final class GrasspicsMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        CommandManager.INSTANCE.registerCommand(GrassPic.INSTANCE, true);
-        CommandManager.INSTANCE.registerCommand(GrassPicStatus.INSTANCE, true);
-        CommandManager.INSTANCE.registerCommand(PostGrassPic.INSTANCE, true);
+        CommandManager.INSTANCE.registerCommand(new GrassPic(), true);
+        CommandManager.INSTANCE.registerCommand(new GrassPicStatus(), true);
+        CommandManager.INSTANCE.registerCommand(new PostGrassPic(), true);
 
         String SIMS_USER = PluginConfig.INSTANCE.user.get();
         String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();

@@ -1,4 +1,4 @@
-package cn.whitrayhb.grasspics.dataconfig;
+package cn.whitrayhb.grasspics.dataConfig;
 
 
 import net.mamoe.mirai.console.data.Value;

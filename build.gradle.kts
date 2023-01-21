@@ -1,5 +1,5 @@
 plugins {
-    val kotlinVersion = "1.6.10"
+    val kotlinVersion = "1.7.10"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
@@ -23,4 +23,8 @@ dependencies {
 
 tasks.withType<Jar>() {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+mirai {
+    jvmTarget = JavaVersion.VERSION_17
 }

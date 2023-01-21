@@ -1,8 +1,8 @@
 package cn.whitrayhb.grasspics.commands;
 
 import cn.whitrayhb.grasspics.GrasspicsMain;
-import cn.whitrayhb.grasspics.dataconfig.PluginConfig;
-import cn.whitrayhb.grasspics.dataconfig.PluginData;
+import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
+import cn.whitrayhb.grasspics.dataConfig.PluginData;
 import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.java.JRawCommand;
 import net.mamoe.mirai.contact.User;
@@ -17,33 +17,37 @@ import net.mamoe.mirai.message.data.SingleMessage;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class PostGrassPic extends JRawCommand {
-    public static final PostGrassPic INSTANCE = new PostGrassPic();
-    private static final ArrayList<User> nextAreYou = new ArrayList<>();
-    private static final HashMap<User, Thread> listeningThreads = new HashMap<>();
+    private static final Vector<Long> nextAreYou = new Vector<>();
+    private static final ConcurrentHashMap<Long, Thread> listeningThreads = new ConcurrentHashMap<>();
 
-    @SuppressWarnings("deprecation")
-    private PostGrassPic() {
+    public PostGrassPic() {
         super(GrasspicsMain.INSTANCE, "post-grass-pic", "投草图", "草图投稿", "投张草图", "投稿草图");
         this.setDescription("草图投稿");
         this.setPrefixOptional(true);
         this.setUsage("(/)草图投稿  #草图投稿");
 
         Listener<GroupMessageEvent> listener = GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessageEvent.class, m -> {
-            if (!nextAreYou.contains(m.getSender())) return;
+            long uid = m.getSender().getId();
+
+            if (listeningThreads.containsKey(uid)) {
+                listeningThreads.get(uid).interrupt();
+                listeningThreads.remove(uid);
+            }
+
+            if (!nextAreYou.contains(uid)) return;
             SingleMessage message = m.getMessage().stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
 
             User user = m.getSender();
 
             if (message == null) {
                 m.getGroup().sendMessage("您发送的不是图片哦, 已经取消投稿.");
-                nextAreYou.remove(m.getSender());
-                listeningThreads.remove(m.getSender());
+                nextAreYou.remove(uid);
 
                 return;
             }
@@ -57,47 +61,32 @@ public class PostGrassPic extends JRawCommand {
 
             Image image = (Image) message;
             if (image.getSize() > 2048000) {
-                nextAreYou.remove(user);
-                if (listeningThreads.containsKey(user)) {
-                    listeningThreads.get(user).interrupt();
-                    listeningThreads.remove(user);
-                }
+                nextAreYou.remove(user.getId());
 
                 m.getGroup().sendMessage("图片太大了, 请压缩一下再投稿!");
                 return;
             }
 
             if (image.getImageType() == ImageType.GIF || image.getImageType() == ImageType.UNKNOWN) {
-                nextAreYou.remove(user);
-                if (listeningThreads.containsKey(user)) {
-                    listeningThreads.get(user).interrupt();
-                    listeningThreads.remove(user);
-                }
+                nextAreYou.remove(user.getId());
 
                 m.getGroup().sendMessage("您发送了不支持投稿的图片类型!");
                 return;
             }
 
-            nextAreYou.remove(user);
-            if (listeningThreads.containsKey(user)) {
-                listeningThreads.get(user).interrupt();
-                listeningThreads.remove(user);
-            }
+            nextAreYou.remove(user.getId());
 
             if (GrasspicsMain.shouldUsePublicPostingChannel()) {
                 postToPublicChannel(m, image);
                 return;
             }
 
-            // Open a thread and a watcher
-            Thread postThread = new Thread(() -> {
+            GrasspicsMain.globalExecutorService.submit(() -> {
                 try {
-                    OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
-
                     // Download Image
                     String queryURL = Image.queryUrl(image);
                     Request imageDownloadRequest = new Request.Builder().url(queryURL).get().build();
-                    Response imageDownloadResponse = client.newCall(imageDownloadRequest).execute();
+                    Response imageDownloadResponse = GrasspicsMain.globalHttpClient.newCall(imageDownloadRequest).execute();
                     if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
                     byte[] imageBytes = imageDownloadResponse.body().bytes();
 
@@ -112,24 +101,16 @@ public class PostGrassPic extends JRawCommand {
                     builder.addFormDataPart("file", "file", RequestBody.create(imageBytes));
 
                     Request imagePostRequest = new Request.Builder().url(postURL).post(builder.build()).build();
-                    Response imagePostResponse = client.newCall(imagePostRequest).execute();
+                    Response imagePostResponse = GrasspicsMain.globalHttpClient.newCall(imagePostRequest).execute();
 
                     if (imagePostResponse.body() == null) throw new Exception("Empty response body.");
                     String code = imagePostResponse.body().string();
 
                     switch (code) {
-                        case "200":
-                            m.getGroup().sendMessage("投稿成功, 正在等待审核。");
-                            break;
-                        case "401":
-                            m.getGroup().sendMessage("鉴权信息无效, 请检查配置文件。");
-                            break;
-                        case "403":
-                            m.getGroup().sendMessage("图片太大了, 投稿失败。");
-                            break;
-                        default:
-                            m.getGroup().sendMessage("服务器响应无效: " + code);
-                            break;
+                        case "200" -> m.getGroup().sendMessage("投稿成功, 正在等待审核。");
+                        case "401" -> m.getGroup().sendMessage("鉴权信息无效, 请检查配置文件。");
+                        case "403" -> m.getGroup().sendMessage("图片太大了, 投稿失败。");
+                        default -> m.getGroup().sendMessage("服务器响应无效: " + code);
                     }
 
                     imageDownloadResponse.close();
@@ -138,37 +119,13 @@ public class PostGrassPic extends JRawCommand {
                     ex.printStackTrace();
                 }
             });
-            postThread.start();
-
-            new Thread(() -> {
-                try {
-                    Thread.sleep(10 * 1000);
-                } catch (InterruptedException e) {
-                    return;
-                }
-
-                if (!postThread.isAlive()) return;
-                postThread.stop();
-
-                m.getGroup().sendMessage("投稿超时, 请稍后重试!");
-
-                nextAreYou.remove(user);
-                if (listeningThreads.containsKey(user)) {
-                    listeningThreads.get(user).interrupt();
-                    listeningThreads.remove(user);
-                }
-            }).start();
         });
 
         listener.start();
     }
 
-    @SuppressWarnings("deprecation")
     public static void postToPublicChannel(GroupMessageEvent m, Image image) {
-        User user = m.getSender();
-
-        // Open a post thread and a watcher
-        Thread postThread = new Thread(() -> {
+        GrasspicsMain.globalExecutorService.submit(() -> {
             try {
                 OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
 
@@ -193,44 +150,18 @@ public class PostGrassPic extends JRawCommand {
                 int code = new JSONObject(imagePostResponse.body().string()).getInt("code");
 
                 switch (code) {
-                    case 200:
-                        m.getGroup().sendMessage("投稿成功, 正在等待审核。");
-                        break;
-                    case 400:
-                        m.getGroup().sendMessage("图片格式无效.");
-                        break;
-                    case 403:
-                        m.getGroup().sendMessage("图片太大，投稿失败。");
-                        break;
-                    default:
-                        m.getGroup().sendMessage("服务器响应无效: " + code);
-                        break;
+                    case 200 -> m.getGroup().sendMessage("投稿成功, 正在等待审核。");
+                    case 400 -> m.getGroup().sendMessage("图片格式无效.");
+                    case 403 -> m.getGroup().sendMessage("图片太大，投稿失败。");
+                    default -> m.getGroup().sendMessage("服务器响应无效: " + code);
                 }
             } catch (Exception ex) {
                 m.getGroup().sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
                 ex.printStackTrace();
+            } finally {
+                nextAreYou.remove(m.getSender().getId());
             }
         });
-        postThread.start();
-
-        new Thread(() -> {
-            try {
-                Thread.sleep(10 * 1000);
-            } catch (InterruptedException e) {
-                return;
-            }
-
-            if (!postThread.isAlive()) return;
-            postThread.stop();
-
-            m.getGroup().sendMessage("投稿超时, 请稍后重试!");
-
-            nextAreYou.remove(user);
-            if (listeningThreads.containsKey(user)) {
-                listeningThreads.get(user).interrupt();
-                listeningThreads.remove(user);
-            }
-        }).start();
     }
 
     @Override
@@ -241,15 +172,16 @@ public class PostGrassPic extends JRawCommand {
         }
 
         User user = sender.getUser();
+        long uid = Objects.requireNonNull(user).getId();
 
-        if (nextAreYou.contains(user) || listeningThreads.containsKey(user)) {
+        if (nextAreYou.contains(uid)) {
             sender.sendMessage("您已经在投稿了，请直接把图片发送给我哦。");
             return;
         }
 
         if (GrasspicsMain.shouldUsePublicPostingChannel()) {
-            if (!PluginData.INSTANCE.savedQQ.get().contains(Objects.requireNonNull(sender.getUser()).getId())) {
-                PluginData.INSTANCE.savedQQ.get().add(Objects.requireNonNull(sender.getUser()).getId());
+            if (!PluginData.INSTANCE.savedQQ.get().contains(uid)) {
+                PluginData.INSTANCE.savedQQ.get().add(uid);
                 sender.sendMessage("您第一次向公共投稿通道投稿，请认真阅读以下内容:\n\n" + GrasspicsMain.TEXT_RULES + "\n\n如果您投稿违规内容，机器人的 IP 可能会被封禁.");
             }
         } else {
@@ -263,26 +195,24 @@ public class PostGrassPic extends JRawCommand {
         }
 
         sender.sendMessage("请把要投稿的图片发送给我吧~");
-        nextAreYou.add(user);
+        nextAreYou.add(uid);
 
         Thread listener = new Thread(() -> {
             try {
                 Thread.sleep(30 * 1000);
 
                 if (Thread.currentThread().isInterrupted()) return;
-                if (!nextAreYou.contains(user)) return;
+                if (!nextAreYou.contains(uid)) return;
 
                 sender.sendMessage("还没想好要发什么嘛，想起来再来投稿吧!");
-
-                nextAreYou.remove(user);
-                listeningThreads.remove(user);
             } catch (Exception ignored) {
-                nextAreYou.remove(user);
-                listeningThreads.remove(user);
+            } finally {
+                nextAreYou.remove(uid);
+                listeningThreads.remove(uid);
             }
         });
 
         listener.start();
-        listeningThreads.put(user, listener);
+        listeningThreads.put(uid, listener);
     }
 }

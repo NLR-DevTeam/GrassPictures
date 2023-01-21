@@ -1,0 +1,18 @@
+package cn.whitrayhb.grasspics.utils;
+
+import java.util.concurrent.ConcurrentHashMap;
+
+public class Cooler {
+    private static final ConcurrentHashMap<Long, Long> coolDownMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long, Long> lockTimeMap = new ConcurrentHashMap<>();
+
+    public static void lock(long uid, long lockTime) {
+        coolDownMap.put(uid, System.currentTimeMillis());
+        lockTimeMap.put(uid, lockTime);
+    }
+
+    public static boolean isLocked(long uid) {
+        if (!coolDownMap.containsKey(uid) || !lockTimeMap.containsKey(uid)) return false;
+        return (coolDownMap.get(uid) - System.currentTimeMillis()) >= lockTimeMap.get(uid);
+    }
+}

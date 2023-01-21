@@ -9,9 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 public class GrassPicStatus extends JRawCommand {
-    public static final GrassPicStatus INSTANCE = new GrassPicStatus();
-
-    private GrassPicStatus() {
+    public GrassPicStatus() {
         super(GrasspicsMain.INSTANCE, "grass-pic-status", "草图信息");
         this.setDescription("草图信息");
         this.setPrefixOptional(true);
@@ -22,7 +20,6 @@ public class GrassPicStatus extends JRawCommand {
     public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
         try {
             String info = GrassPic.fetchJson("https://grass.nlrdev.top/backend/status");
-            if (info == null) throw new Exception("Failed to fetch GrassPic info!");
 
             JSONObject jsonObject = new JSONObject(info);
             MessageChain message = new MessageChainBuilder()

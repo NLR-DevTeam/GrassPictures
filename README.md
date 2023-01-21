@@ -17,7 +17,7 @@ ___
 
 |名称|指令|指令功能|权限节点|
 |--|--|--|--|
-|**生草**|<li>草图</li><li>来张草图</li><li>生草</li><li>grass-pic</li>|来一张草图|`cn.whitrayhb.grasspics:command.grass-pic`|
+|**生草**|<li>来张草图</li><li>生草</li><li>grass-pic</li>|来一张草图|`cn.whitrayhb.grasspics:command.grass-pic`|
 |**草图信息**|<li>草图信息</li><li>grass-pic-status</li>|获取草图当前状态|`cn.whitrayhb.grasspics:command.grass-pic-status`|
 |**投稿草图**|<li>草图投稿</li><li>投稿草图</li><li>post-grass-pic</li>|向草图库投稿|`cn.whitrayhb.grasspics:command.post-grass-pic`|
 

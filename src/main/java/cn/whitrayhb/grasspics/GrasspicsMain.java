@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-
 public final class GrasspicsMain extends JavaPlugin {
     public static final OkHttpClient globalHttpClient = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
     public static final GrasspicsMain INSTANCE = new GrasspicsMain();
@@ -31,7 +30,7 @@ public final class GrasspicsMain extends JavaPlugin {
     private static boolean usePublicPosting = false;
 
     private GrasspicsMain() {
-        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.3")
+        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.4")
                 .name("草图插件")
                 .info("草图适配插件")
                 .author("NLR DevTeam")

@@ -11,7 +11,6 @@
 
 >[Mirai Forum 介绍帖](https://mirai.mamoe.net/topic/1965/grasspictures-随机获取生草插件)
 
-___
 
 ## Commands：
 
@@ -28,7 +27,6 @@ ___
   <img src="https://imgcdn.simsoft.top/1673953355-2A5D48FE-0C24-46C5-B6B7-139169EFECF5.jpeg" width="300px">
 </details>
 
-___
 
 ## FAQs:
 
@@ -54,12 +52,10 @@ ___
   
   您可能没有给予相对应的群权限,如果出现报错，请向我们反馈
 
-- **配置文件中的user和token是干嘛的呢？**
+- **配置文件中的 `user` 和 `token` 是干嘛的呢？**
 
-  配置文件中的user和token是内部人员使用，普通用户可忽略
+  配置文件中的 `user` 和 `token` 用于内部投稿通道使用，您可忽略此处的配置
 ___
 您可加入我们的 [QQ群](https://qm.qq.com/cgi-bin/qm/qr?k=3fydvbI64F7r0Tz2Y5BTWfJi-irnBnSz&authKey=ib%2FY0l5RwzWu2X5cDRK%2FB2swvZotR7f68BpJWLy5TuT1vRQGjya%2FT36dgV1xn4fs&noverify=0&group_code=182850795) 了解更多
 
 ___
-
-![撅XIAYM](https://imgcdn.simsoft.top/1674042228-dff3a8c9ce1aba7.gif)

@@ -5,16 +5,20 @@
 
 ## Links：
 
-- [草图官方网站](https://grass.nlrdev.top)
-- [草图开发文档](https://docs.simsoft.top/?doc=grass-dev-doc)
-- [Mirai Forum 介绍帖](https://mirai.mamoe.net/topic/1965/grasspictures-随机获取生草插件)
+>[草图官方网站](https://grass.nlrdev.top)
+
+>[草图开发文档](https://docs.simsoft.top/?doc=grass-dev-doc)
+
+>[Mirai Forum 介绍帖](https://mirai.mamoe.net/topic/1965/grasspictures-随机获取生草插件)
+
+___
 
 ## Commands：
 
 |名称|指令|指令功能|权限节点|
 |--|--|--|--|
 |**生草**|<li>草图</li><li>来张草图</li><li>生草</li><li>grass-pic</li>|来一张草图|`cn.whitrayhb.grasspics:command.grass-pic`|
-|**草图信息**|<li>草图信息</li><li>grass-pic-status</li>|获取草图实时状态|`cn.whitrayhb.grasspics:command.grass-pic-status`|
+|**草图信息**|<li>草图信息</li><li>grass-pic-status</li>|获取草图当前状态|`cn.whitrayhb.grasspics:command.grass-pic-status`|
 |**投稿草图**|<li>草图投稿</li><li>投稿草图</li><li>post-grass-pic</li>|向草图库投稿|`cn.whitrayhb.grasspics:command.post-grass-pic`|
 
 <details>
@@ -23,6 +27,8 @@
   <img src="https://imgcdn.simsoft.top/1673953098-53A45BD7-A8F1-4581-BAEE-EBB5A7619A86.jpeg" width="300px">
   <img src="https://imgcdn.simsoft.top/1673953355-2A5D48FE-0C24-46C5-B6B7-139169EFECF5.jpeg" width="300px">
 </details>
+
+___
 
 ## FAQs:
 
@@ -37,9 +43,23 @@
   4）授予成员相应的权限节点 [权限节点说明文档](https://docs.mirai.mamoe.net/console/Permissions.html)
   
   5）开始生草吧！
-  
+
 - **草图投稿是什么? 如何使用?**
   
   目前 Mirai Console 插件中投稿功能已开放公众投稿通道，其投稿要求与主站相同，请不要投稿违规或灌水图片。多次投稿违规图片的用户 IP 可能会被**封禁**。
   
-  你可以点击 [草图官方网站](//grass.nlrdev.top/)右下角图标进行投稿，或是使用`草图投稿`命令进行投稿
+  你可以前往 [草图官方网站](//grass.nlrdev.top/) 进行投稿，或是使用`草图投稿`命令进行投稿
+
+- **为什么我输入指令没反应？**
+  
+  您可能没有给予相对应的群权限,如果出现报错，请向我们反馈
+
+- **配置文件中的user和token是干嘛的呢？**
+
+  配置文件中的user和token是内部人员使用，普通用户可忽略
+___
+您可加入我们的 [QQ群](https://qm.qq.com/cgi-bin/qm/qr?k=3fydvbI64F7r0Tz2Y5BTWfJi-irnBnSz&authKey=ib%2FY0l5RwzWu2X5cDRK%2FB2swvZotR7f68BpJWLy5TuT1vRQGjya%2FT36dgV1xn4fs&noverify=0&group_code=182850795) 了解更多
+
+___
+
+![撅XIAYM](https://imgcdn.simsoft.top/1674042228-dff3a8c9ce1aba7.gif)

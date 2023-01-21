@@ -13,6 +13,6 @@ public class Cooler {
 
     public static boolean isLocked(long uid) {
         if (!coolDownMap.containsKey(uid) || !lockTimeMap.containsKey(uid)) return false;
-        return (coolDownMap.get(uid) - System.currentTimeMillis()) >= lockTimeMap.get(uid);
+        return (System.currentTimeMillis() - coolDownMap.get(uid)) >= lockTimeMap.get(uid);
     }
 }

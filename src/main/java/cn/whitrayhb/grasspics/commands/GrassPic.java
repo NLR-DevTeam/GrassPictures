@@ -3,6 +3,7 @@ package cn.whitrayhb.grasspics.commands;
 import cn.whitrayhb.grasspics.GrasspicsMain;
 import cn.whitrayhb.grasspics.utils.Cooler;
 import net.mamoe.mirai.console.command.CommandSender;
+import net.mamoe.mirai.console.command.ConsoleCommandSender;
 import net.mamoe.mirai.console.command.java.JRawCommand;
 import net.mamoe.mirai.internal.deps.okhttp3.Request;
 import net.mamoe.mirai.internal.deps.okhttp3.Response;
@@ -79,10 +80,12 @@ public class GrassPic extends JRawCommand {
 
     @Override
     public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
-        if (sender.getSubject() == null) {
+        if (sender instanceof ConsoleCommandSender) {
             sender.sendMessage("请不要在控制台中运行该命令");
             return;
         }
+
+        if (sender.getSubject() == null) return;
 
         long uid = Objects.requireNonNull(sender.getUser()).getId();
 

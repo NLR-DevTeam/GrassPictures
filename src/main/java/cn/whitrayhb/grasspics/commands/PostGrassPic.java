@@ -4,7 +4,9 @@ import cn.whitrayhb.grasspics.GrasspicsMain;
 import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
 import cn.whitrayhb.grasspics.dataConfig.PluginData;
 import net.mamoe.mirai.console.command.CommandSender;
+import net.mamoe.mirai.console.command.ConsoleCommandSender;
 import net.mamoe.mirai.console.command.java.JRawCommand;
+import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.User;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.Listener;
@@ -166,8 +168,13 @@ public class PostGrassPic extends JRawCommand {
 
     @Override
     public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
-        if (sender.getSubject() == null) {
+        if (sender instanceof ConsoleCommandSender) {
             sender.sendMessage("请不要在控制台中运行该命令");
+            return;
+        }
+
+        if (sender.getSubject() == null || !(sender.getSubject() instanceof Group)) {
+            sender.sendMessage("请在开启了权限的聊群中使用该命令");
             return;
         }
 

@@ -3,6 +3,7 @@ package cn.whitrayhb.grasspics.commands;
 import cn.whitrayhb.grasspics.GrasspicsMain;
 import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
 import cn.whitrayhb.grasspics.dataConfig.PluginData;
+import cn.whitrayhb.grasspics.utils.ImageUtil;
 import cn.whitrayhb.grasspics.utils.MessageListener;
 import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.ConsoleCommandSender;
@@ -34,6 +35,8 @@ public class PostGrassPic extends JRawCommand {
         String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
 
         GrasspicsMain.globalExecutorService.submit(() -> {
+            if (sender.getSubject() == null) return;
+
             try {
                 // Download Image
                 String queryURL = Image.queryUrl(image);
@@ -41,6 +44,12 @@ public class PostGrassPic extends JRawCommand {
                 Response imageDownloadResponse = GrasspicsMain.globalHttpClient.newCall(imageDownloadRequest).execute();
                 if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
                 byte[] imageBytes = imageDownloadResponse.body().bytes();
+
+                String type = ImageUtil.getImageExt(imageBytes);
+                if (type.equals("unknown") || type.equals("gif")) {
+                    sender.getSubject().sendMessage("此图片类型不受支持!");
+                    return;
+                }
 
                 // Post Image
                 String postURL = "https://i.simsoft.top/grass/nlr/upload";
@@ -58,8 +67,6 @@ public class PostGrassPic extends JRawCommand {
                 if (imagePostResponse.body() == null) throw new Exception("Empty response body.");
                 String code = imagePostResponse.body().string();
 
-                if (sender.getSubject() == null) return;
-
                 switch (code) {
                     case "200" -> sender.getSubject().sendMessage("投稿成功, 正在等待审核。");
                     case "401" -> sender.getSubject().sendMessage("鉴权信息无效, 请检查配置文件。");
@@ -69,7 +76,7 @@ public class PostGrassPic extends JRawCommand {
 
                 imageDownloadResponse.close();
             } catch (Exception ex) {
-                Objects.requireNonNull(sender.getSubject()).sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
+                sender.getSubject().sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
                 ex.printStackTrace();
             }
         });
@@ -77,6 +84,8 @@ public class PostGrassPic extends JRawCommand {
 
     public static void postToPublicChannel(CommandSender sender, Image image) {
         GrasspicsMain.globalExecutorService.submit(() -> {
+            if (sender.getSubject() == null) return;
+
             try {
                 // Download Image
                 String queryURL = Image.queryUrl(image);
@@ -84,6 +93,12 @@ public class PostGrassPic extends JRawCommand {
                 Response imageDownloadResponse = GrasspicsMain.globalHttpClient.newCall(imageDownloadRequest).execute();
                 if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
                 byte[] imageBytes = imageDownloadResponse.body().bytes();
+
+                String type = ImageUtil.getImageExt(imageBytes);
+                if (type.equals("unknown") || type.equals("gif")) {
+                    sender.getSubject().sendMessage("此图片类型不受支持!");
+                    return;
+                }
 
                 // Post Image
                 String postURL = "https://grass.nlrdev.top/backend/upload";
@@ -98,16 +113,14 @@ public class PostGrassPic extends JRawCommand {
                 if (imagePostResponse.body() == null) throw new Exception("Empty response body.");
                 int code = new JSONObject(imagePostResponse.body().string()).getInt("code");
 
-                if (sender.getSubject() == null) return;
-
                 switch (code) {
                     case 200 -> sender.getSubject().sendMessage("投稿成功, 正在等待审核。");
-                    case 400 -> sender.getSubject().sendMessage("图片格式无效.");
+                    case 400 -> sender.getSubject().sendMessage("图片格式无效!");
                     case 403 -> sender.getSubject().sendMessage("图片太大，投稿失败。");
                     default -> sender.getSubject().sendMessage("服务器响应无效: " + code);
                 }
             } catch (Exception ex) {
-                Objects.requireNonNull(sender.getSubject()).sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
+                sender.getSubject().sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
                 ex.printStackTrace();
             } finally {
                 nextAreYou.remove(Objects.requireNonNull(sender.getUser()).getId());
@@ -118,7 +131,7 @@ public class PostGrassPic extends JRawCommand {
     @Override
     public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
         if (sender instanceof ConsoleCommandSender || sender.getSubject() == null) {
-            sender.sendMessage("请不要在控制台中运行该命令");
+            sender.sendMessage("请不要在控制台中运行该命令。");
             return;
         }
 
@@ -140,7 +153,7 @@ public class PostGrassPic extends JRawCommand {
             String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
 
             if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) {
-                sender.sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务.");
+                sender.sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务。");
                 return;
             }
         }
@@ -158,7 +171,7 @@ public class PostGrassPic extends JRawCommand {
             SingleMessage imageMessage = message.stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
 
             if (imageMessage == null) {
-                sender.getSubject().sendMessage("您发送的不是图片哦, 已经取消投稿.");
+                sender.getSubject().sendMessage("您发送的不是图片哦, 已经取消投稿。");
                 nextAreYou.remove(uid);
 
                 return;
@@ -167,7 +180,7 @@ public class PostGrassPic extends JRawCommand {
             String SIMS_USER = PluginConfig.INSTANCE.user.get();
             String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
             if (!GrasspicsMain.shouldUsePublicPostingChannel() && (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty())) {
-                sender.getSubject().sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务.");
+                sender.getSubject().sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务。");
                 return;
             }
 
@@ -179,7 +192,7 @@ public class PostGrassPic extends JRawCommand {
                 return;
             }
 
-            if (image.getImageType() == ImageType.GIF || image.getImageType() == ImageType.UNKNOWN) {
+            if (image.getImageType() == ImageType.GIF) {
                 nextAreYou.remove(uid);
 
                 sender.getSubject().sendMessage("您发送了不支持投稿的图片类型!");

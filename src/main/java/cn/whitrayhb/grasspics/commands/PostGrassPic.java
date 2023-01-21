@@ -22,7 +22,6 @@ import org.json.JSONObject;
 import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 public class PostGrassPic extends JRawCommand {
     private static final Vector<Long> nextAreYou = new Vector<>();
@@ -38,13 +37,16 @@ public class PostGrassPic extends JRawCommand {
             long uid = m.getSender().getId();
 
             if (listeningThreads.containsKey(uid)) {
-                listeningThreads.get(uid).interrupt();
-                listeningThreads.remove(uid);
+                listeningThreads.remove(uid).interrupt();
             }
 
             if (!nextAreYou.contains(uid)) return;
-            SingleMessage message = m.getMessage().stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
+            if (m.getMessage().contentToString().equals("取消") || m.getMessage().contentToString().equals("cancel")) {
+                m.getGroup().sendMessage("您已取消投稿。");
+                return;
+            }
 
+            SingleMessage message = m.getMessage().stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
             User user = m.getSender();
 
             if (message == null) {
@@ -129,12 +131,10 @@ public class PostGrassPic extends JRawCommand {
     public static void postToPublicChannel(GroupMessageEvent m, Image image) {
         GrasspicsMain.globalExecutorService.submit(() -> {
             try {
-                OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
-
                 // Download Image
                 String queryURL = Image.queryUrl(image);
                 Request imageDownloadRequest = new Request.Builder().url(queryURL).get().build();
-                Response imageDownloadResponse = client.newCall(imageDownloadRequest).execute();
+                Response imageDownloadResponse = GrasspicsMain.globalHttpClient.newCall(imageDownloadRequest).execute();
                 if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
                 byte[] imageBytes = imageDownloadResponse.body().bytes();
 
@@ -146,7 +146,7 @@ public class PostGrassPic extends JRawCommand {
                 builder.addFormDataPart("file", "file", RequestBody.create(imageBytes, MediaType.parse("image/png")));
 
                 Request imagePostRequest = new Request.Builder().url(postURL).post(builder.build()).build();
-                Response imagePostResponse = client.newCall(imagePostRequest).execute();
+                Response imagePostResponse = GrasspicsMain.globalHttpClient.newCall(imagePostRequest).execute();
 
                 if (imagePostResponse.body() == null) throw new Exception("Empty response body.");
                 int code = new JSONObject(imagePostResponse.body().string()).getInt("code");

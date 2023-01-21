@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
 
 public class GrassPic extends JRawCommand {
@@ -48,7 +47,7 @@ public class GrassPic extends JRawCommand {
      *
      * @return 字符串，为带文件名的图片位置
      */
-    public static String fetchPicture() {
+    public static File fetchPicture() {
         try {
             File file = new File(GrasspicsMain.INSTANCE.getDataFolder(), "cache/");
             if (!file.exists() && !file.mkdirs()) {
@@ -65,16 +64,15 @@ public class GrassPic extends JRawCommand {
             Response imageRes = GrasspicsMain.globalHttpClient.newCall(imageReq).execute();
             if (imageRes.body() == null) throw new Exception("Unexpected null body.");
 
-            Path cachePicturePath = Paths.get(file + jsonObject.getString("id"));
+            Path cachePicturePath = new File(file, jsonObject.getString("id")).toPath();
             Files.deleteIfExists(cachePicturePath);
             Files.copy(imageRes.body().byteStream(), cachePicturePath);
 
             GrasspicsMain.INSTANCE.getLogger().info("图片下载成功!");
-            return file + jsonObject.getString("id");
+            return cachePicturePath.toFile();
         } catch (Exception e) {
             GrasspicsMain.INSTANCE.getLogger().error("图片下载失败!");
-            GrasspicsMain.INSTANCE.getLogger().error(e);
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -98,11 +96,9 @@ public class GrassPic extends JRawCommand {
 
         // Open a thread and a watcher
         Thread getThread = new Thread(() -> {
-            String picPath = fetchPicture();
+            File file = fetchPicture();
 
-            if (picPath != null) {
-                File file = new File(picPath);
-
+            if (file != null) {
                 ExternalResource resource = ExternalResource.create(file);
                 Image image = sender.getSubject().uploadImage(resource);
                 sender.sendMessage(image);

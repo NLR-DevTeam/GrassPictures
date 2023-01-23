@@ -164,6 +164,29 @@ public class PostGrassPic extends JRawCommand {
             }
         }
 
+        SingleMessage sm = args.stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
+        if (sm != null) {
+            Image image = (Image) sm;
+
+            if (image.getSize() > 2048000) {
+                sender.getSubject().sendMessage("图片太大了, 请压缩一下再投稿!");
+                return;
+            }
+
+            if (image.getImageType() == ImageType.GIF) {
+                sender.getSubject().sendMessage("您发送了不支持投稿的图片类型!");
+                return;
+            }
+
+            if (GrasspicsMain.shouldUsePublicPostingChannel()) {
+                postToPublicChannel(sender, image);
+                return;
+            }
+
+            postToPrivateChannel(sender, image);
+            return;
+        }
+
         sender.sendMessage("请把要投稿的图片发送给我吧~");
         nextAreYou.add(uid);
 

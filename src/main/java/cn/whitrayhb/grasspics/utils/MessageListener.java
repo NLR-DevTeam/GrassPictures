@@ -47,7 +47,7 @@ public class MessageListener {
             @Override
             public void run() {
                 if ((System.currentTimeMillis() - createTime) > timeout) {
-                    onTimeout.accept(new TimeoutException("Wait timed out."));
+                    onTimeout.accept(new TimeoutException());
 
                     this.cancel();
                     return;

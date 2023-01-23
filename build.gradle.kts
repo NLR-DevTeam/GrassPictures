@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "cn.whitrayhb"
-version = "1.1.4"
+version = "1.1.5"
 
 repositories {
     if (System.getenv("CI")?.toBoolean() != true) {

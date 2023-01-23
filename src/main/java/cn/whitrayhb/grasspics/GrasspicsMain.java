@@ -5,6 +5,7 @@ import cn.whitrayhb.grasspics.commands.GrassPicStatus;
 import cn.whitrayhb.grasspics.commands.PostGrassPic;
 import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
 import cn.whitrayhb.grasspics.dataConfig.PluginData;
+import cn.whitrayhb.grasspics.dataConfig.SimSoftSecureConfig;
 import net.mamoe.mirai.console.command.CommandManager;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
@@ -30,12 +31,13 @@ public final class GrasspicsMain extends JavaPlugin {
     private static boolean usePublicPosting = false;
 
     private GrasspicsMain() {
-        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.4")
+        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.5")
                 .name("草图插件")
                 .info("草图适配插件")
                 .author("NLR DevTeam")
                 .build());
 
+        reloadPluginConfig(SimSoftSecureConfig.INSTANCE);
         reloadPluginConfig(PluginConfig.INSTANCE);
         reloadPluginData(PluginData.INSTANCE);
     }
@@ -79,8 +81,8 @@ public final class GrasspicsMain extends JavaPlugin {
         CommandManager.INSTANCE.registerCommand(new GrassPicStatus(), true);
         CommandManager.INSTANCE.registerCommand(new PostGrassPic(), true);
 
-        String SIMS_USER = PluginConfig.INSTANCE.user.get();
-        String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
+        String SIMS_USER = SimSoftSecureConfig.INSTANCE.user.get();
+        String SIMS_TOKEN = SimSoftSecureConfig.INSTANCE.token.get();
         if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) {
             usePublicPosting = true;
             getLogger().warning("您正在使用公共投稿通道，如图片违规次数过多，则机器人 IP 就可能会被封禁。");

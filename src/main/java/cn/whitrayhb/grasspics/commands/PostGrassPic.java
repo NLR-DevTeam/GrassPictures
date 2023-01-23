@@ -3,6 +3,8 @@ package cn.whitrayhb.grasspics.commands;
 import cn.whitrayhb.grasspics.GrasspicsMain;
 import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
 import cn.whitrayhb.grasspics.dataConfig.PluginData;
+import cn.whitrayhb.grasspics.dataConfig.SimSoftSecureConfig;
+import cn.whitrayhb.grasspics.utils.Cooler;
 import cn.whitrayhb.grasspics.utils.ImageUtil;
 import cn.whitrayhb.grasspics.utils.MessageListener;
 import net.mamoe.mirai.console.command.CommandSender;
@@ -31,8 +33,8 @@ public class PostGrassPic extends JRawCommand {
     }
 
     public static void postToPrivateChannel(CommandSender sender, Image image) {
-        String SIMS_USER = PluginConfig.INSTANCE.user.get();
-        String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
+        String SIMS_USER = SimSoftSecureConfig.INSTANCE.user.get();
+        String SIMS_TOKEN = SimSoftSecureConfig.INSTANCE.token.get();
 
         GrasspicsMain.globalExecutorService.submit(() -> {
             if (sender.getSubject() == null) return;
@@ -71,6 +73,7 @@ public class PostGrassPic extends JRawCommand {
                     case "200" -> sender.getSubject().sendMessage("投稿成功, 正在等待审核。");
                     case "401" -> sender.getSubject().sendMessage("鉴权信息无效, 请检查配置文件。");
                     case "403" -> sender.getSubject().sendMessage("图片太大了, 投稿失败。");
+                    case "503" -> sender.getSubject().sendMessage("你已被草图服务封禁，投稿失败。");
                     default -> sender.getSubject().sendMessage("服务器响应无效: " + code);
                 }
 
@@ -117,6 +120,7 @@ public class PostGrassPic extends JRawCommand {
                     case 200 -> sender.getSubject().sendMessage("投稿成功, 正在等待审核。");
                     case 400 -> sender.getSubject().sendMessage("图片格式无效!");
                     case 403 -> sender.getSubject().sendMessage("图片太大，投稿失败。");
+                    case 503 -> sender.getSubject().sendMessage("机器人已被草图服务封禁，投稿失败。");
                     default -> sender.getSubject().sendMessage("服务器响应无效: " + code);
                 }
             } catch (Exception ex) {
@@ -138,10 +142,12 @@ public class PostGrassPic extends JRawCommand {
         User user = sender.getUser();
         long uid = Objects.requireNonNull(user).getId();
 
-        if (nextAreYou.contains(uid)) {
-            sender.sendMessage("您已经在投稿了，请直接把图片发送给我哦。");
+        if (Cooler.isLocked(uid)) {
+            sender.sendMessage("操作太快了，请稍后再试");
             return;
         }
+
+        Cooler.lock(uid, PluginConfig.INSTANCE.postPictureLockTime.get());
 
         if (GrasspicsMain.shouldUsePublicPostingChannel()) {
             if (!PluginData.INSTANCE.savedQQ.get().contains(uid)) {
@@ -149,8 +155,8 @@ public class PostGrassPic extends JRawCommand {
                 sender.sendMessage("您第一次向公共投稿通道投稿，请认真阅读以下内容:\n\n" + GrasspicsMain.TEXT_RULES + "\n\n如果您投稿违规内容，机器人的 IP 可能会被封禁.");
             }
         } else {
-            String SIMS_USER = PluginConfig.INSTANCE.user.get();
-            String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
+            String SIMS_USER = SimSoftSecureConfig.INSTANCE.user.get();
+            String SIMS_TOKEN = SimSoftSecureConfig.INSTANCE.token.get();
 
             if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) {
                 sender.sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务。");
@@ -163,7 +169,9 @@ public class PostGrassPic extends JRawCommand {
 
         new MessageListener().getNextMessage(sender, message -> {
             if (!nextAreYou.contains(uid)) return;
-            if (message.contentToString().equals("取消") || message.contentToString().equals("cancel")) {
+
+            String content = message.contentToString();
+            if (content.equals("取消") || content.equals("cancel")) {
                 sender.getSubject().sendMessage("您已取消投稿。");
                 return;
             }
@@ -177,8 +185,8 @@ public class PostGrassPic extends JRawCommand {
                 return;
             }
 
-            String SIMS_USER = PluginConfig.INSTANCE.user.get();
-            String SIMS_TOKEN = PluginConfig.INSTANCE.token.get();
+            String SIMS_USER = SimSoftSecureConfig.INSTANCE.user.get();
+            String SIMS_TOKEN = SimSoftSecureConfig.INSTANCE.token.get();
             if (!GrasspicsMain.shouldUsePublicPostingChannel() && (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty())) {
                 sender.getSubject().sendMessage("对不起, 因为主人暂未填写 Simsoft user / token, 所以我无法提供投稿服务。");
                 return;
@@ -212,6 +220,6 @@ public class PostGrassPic extends JRawCommand {
 
             sender.getSubject().sendMessage("还没想好要发什么嘛，想起来再来投稿吧!");
             nextAreYou.remove(uid);
-        }, 30 * 1000);
+        }, PluginConfig.INSTANCE.postPictureTimeout.get());
     }
 }

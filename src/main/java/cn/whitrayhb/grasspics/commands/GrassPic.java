@@ -1,6 +1,7 @@
 package cn.whitrayhb.grasspics.commands;
 
 import cn.whitrayhb.grasspics.GrasspicsMain;
+import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
 import cn.whitrayhb.grasspics.utils.Cooler;
 import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.ConsoleCommandSender;
@@ -92,7 +93,7 @@ public class GrassPic extends JRawCommand {
             return;
         }
 
-        Cooler.lock(uid, 30 * 1000);
+        Cooler.lock(uid, PluginConfig.INSTANCE.getPictureLockTime.get());
 
         // Open a thread and a watcher
         Thread getThread = new Thread(() -> {

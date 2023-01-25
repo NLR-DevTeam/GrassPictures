@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public final class GrasspicsMain extends JavaPlugin {
     public static final OkHttpClient globalHttpClient = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
     public static final GrasspicsMain INSTANCE = new GrasspicsMain();
-    public static final ExecutorService globalExecutorService = Executors.newFixedThreadPool(4);
+    public static final ExecutorService globalExecutorService = Executors.newFixedThreadPool(16);
     public static final String TEXT_RULES = """
             1.请投稿能使多数人觉得有趣的图片
             2.严禁任何违法、涉政等图片上传

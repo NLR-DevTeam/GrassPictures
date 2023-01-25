@@ -15,10 +15,11 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.concurrent.Future;
 
 public class GrassPic extends JRawCommand {
     public GrassPic() {
@@ -96,34 +97,36 @@ public class GrassPic extends JRawCommand {
         Cooler.lock(uid, PluginConfig.INSTANCE.getPictureLockTime.get());
 
         // Open a thread and a watcher
-        Thread getThread = new Thread(() -> {
-            File file = fetchPicture();
+        Future<?> task = GrasspicsMain.globalExecutorService.submit(() -> {
+            try {
+                File file = fetchPicture();
 
-            if (file != null) {
-                ExternalResource resource = ExternalResource.create(file);
-                Image image = sender.getSubject().uploadImage(resource);
-                sender.sendMessage(image);
+                if (file != null) {
+                    ExternalResource resource = ExternalResource.create(file);
+                    Image image = sender.getSubject().uploadImage(resource);
+                    sender.sendMessage(image);
 
-                try {
                     resource.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
+            } catch (Exception ex) {
+                if (ex instanceof InterruptedIOException) return;
+
+                sender.getSubject().sendMessage("获取草图时发生错误，请稍后再试!\n" + ex);
+                ex.printStackTrace();
             }
         });
-        getThread.start();
 
-        new Thread(() -> {
+        GrasspicsMain.globalExecutorService.submit(() -> {
             try {
-                Thread.sleep(10 * 1000);
-            } catch (InterruptedException e) {
+                Thread.sleep(PluginConfig.INSTANCE.getPictureTimeout.get());
+            } catch (InterruptedException ex) {
                 return;
             }
 
-            if (!getThread.isInterrupted()) return;
-            getThread.interrupt();
+            if (task.isDone() || task.isCancelled()) return;
+            task.cancel(true);
 
-            sender.sendMessage("草图获取超时, 请稍后重试!");
-        }).start();
+            sender.getSubject().sendMessage("草图获取超时，请稍后重试！");
+        });
     }
 }

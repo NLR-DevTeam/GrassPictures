@@ -31,6 +31,7 @@ public class GrassPicStatus extends JRawCommand {
                     .append("\n今日图片流量: ").append(jsonObject.getString("apiFlowTodayHuman"))
                     .append("\n图片总大小: ").append(jsonObject.getString("totalImageSizeHuman"))
                     .append("\n审核队列: ").append(jsonObject.getString("waitImage"))
+                    .append("\n插件版本: ").append(GrasspicsMain.INSTANCE.getDescription().getVersion().toString())
                     .build();
 
             sender.sendMessage(message);

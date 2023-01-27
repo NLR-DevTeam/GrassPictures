@@ -7,23 +7,25 @@ import cn.whitrayhb.grasspics.dataConfig.SimSoftSecureConfig;
 import cn.whitrayhb.grasspics.utils.Cooler;
 import cn.whitrayhb.grasspics.utils.ImageUtil;
 import cn.whitrayhb.grasspics.utils.MessageListener;
+import net.mamoe.mirai.console.command.CommandContext;
 import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.ConsoleCommandSender;
 import net.mamoe.mirai.console.command.java.JRawCommand;
 import net.mamoe.mirai.contact.User;
+import net.mamoe.mirai.event.events.GroupMessageEvent;
+import net.mamoe.mirai.event.events.GroupMessagePostSendEvent;
 import net.mamoe.mirai.internal.deps.okhttp3.*;
-import net.mamoe.mirai.message.data.Image;
-import net.mamoe.mirai.message.data.ImageType;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.SingleMessage;
+import net.mamoe.mirai.message.data.*;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Vector;
 
 public class PostGrassPic extends JRawCommand {
     private static final Vector<Long> nextAreYou = new Vector<>();
+    private static final LinkedHashMap<String , Image> imageCachePool = new LinkedHashMap<>();
 
     public PostGrassPic() {
         super(GrasspicsMain.INSTANCE, "post-grass-pic", "投草图", "草图投稿", "投张草图", "投稿草图");
@@ -133,7 +135,8 @@ public class PostGrassPic extends JRawCommand {
     }
 
     @Override
-    public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
+    public void onCommand(@NotNull CommandContext context, @NotNull MessageChain args) {
+        CommandSender sender = context.getSender();
         if (sender instanceof ConsoleCommandSender || sender.getSubject() == null) {
             sender.sendMessage("请不要在控制台中运行该命令。");
             return;
@@ -163,11 +166,38 @@ public class PostGrassPic extends JRawCommand {
                 return;
             }
         }
+        //命令前发图
+        MessageChain originalMessage = context.getOriginalMessage();
+        QuoteReply quote = (QuoteReply) originalMessage.stream().filter(m -> m instanceof QuoteReply).findFirst().orElse(null);
+        if(quote!=null){
+            String id = sender.getSubject().getId() + "-" + quote.getSource().getIds()[0];
+            if(imageCachePool.get(id)!=null) {
+                Image image = imageCachePool.get(id);
+                if (image.getSize() > 2048000) {
+                    sender.getSubject().sendMessage("图片太大了, 请压缩一下再投稿!");
+                    return;
+                }
 
+                if (image.getImageType() == ImageType.GIF) {
+                    sender.getSubject().sendMessage("您发送了不支持投稿的图片类型!");
+                    return;
+                }
+
+                if (GrasspicsMain.shouldUsePublicPostingChannel()) {
+                    postToPublicChannel(sender, image);
+                    return;
+                }
+
+                postToPrivateChannel(sender, image);
+                return;
+            }else{
+                sender.sendMessage("该图片未在缓存中，请重新发送!");
+            }
+        }
+        //命令后跟图
         SingleMessage sm = args.stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
         if (sm != null) {
             Image image = (Image) sm;
-
             if (image.getSize() > 2048000) {
                 sender.getSubject().sendMessage("图片太大了, 请压缩一下再投稿!");
                 return;
@@ -186,7 +216,7 @@ public class PostGrassPic extends JRawCommand {
             postToPrivateChannel(sender, image);
             return;
         }
-
+        //命令后发图
         sender.sendMessage("请把要投稿的图片发送给我吧~");
         nextAreYou.add(uid);
 
@@ -204,7 +234,6 @@ public class PostGrassPic extends JRawCommand {
             if (imageMessage == null) {
                 sender.getSubject().sendMessage("您发送的不是图片哦, 已经取消投稿。");
                 nextAreYou.remove(uid);
-
                 return;
             }
 
@@ -244,5 +273,27 @@ public class PostGrassPic extends JRawCommand {
             sender.getSubject().sendMessage("还没想好要发什么嘛，想起来再来投稿吧!");
             nextAreYou.remove(uid);
         }, PluginConfig.INSTANCE.postPictureTimeout.get());
+    }
+
+    public static void cacheImage(GroupMessageEvent e) {
+        for (SingleMessage singleMessage : e.getMessage()) {
+            if (singleMessage instanceof Image) {
+                String id = e.getGroup().getId() + "-" + Objects.requireNonNull(e.getMessage().get(MessageSource.Key)).getIds()[0];
+                imageCachePool.put(id, (Image) singleMessage);
+                return;
+            }
+        }
+    }
+    public static void cacheImage(GroupMessagePostSendEvent e) {
+        for (SingleMessage singleMessage : e.getMessage()) {
+            if (singleMessage instanceof Image) {
+                try {
+                    String id = e.getTarget().getId() + "-" + Objects.requireNonNull(e.getMessage().get(MessageSource.Key)).getIds()[0];
+                    imageCachePool.put(id, (Image) singleMessage);
+                    return;
+                } catch (Exception ignore) {
+                }
+            }
+        }
     }
 }

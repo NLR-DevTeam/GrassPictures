@@ -9,6 +9,9 @@ import cn.whitrayhb.grasspics.dataConfig.SimSoftSecureConfig;
 import net.mamoe.mirai.console.command.CommandManager;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
+import net.mamoe.mirai.event.GlobalEventChannel;
+import net.mamoe.mirai.event.events.GroupMessageEvent;
+import net.mamoe.mirai.event.events.GroupMessagePostSendEvent;
 import net.mamoe.mirai.internal.deps.okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -31,7 +34,7 @@ public final class GrasspicsMain extends JavaPlugin {
     private static boolean usePublicPosting = false;
 
     private GrasspicsMain() {
-        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.6")
+        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.1.7")
                 .name("草图插件")
                 .info("草图适配插件")
                 .author("NLR DevTeam")
@@ -88,7 +91,8 @@ public final class GrasspicsMain extends JavaPlugin {
             getLogger().warning("您正在使用公共投稿通道，如图片违规次数过多，则机器人 IP 就可能会被封禁。");
             getLogger().warning("如果您不希望启用公共投稿，请关闭聊群内投稿权限。");
         }
-
+        GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessageEvent.class, PostGrassPic::cacheImage);
+        GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessagePostSendEvent.class, PostGrassPic::cacheImage);
         checkUpdate();
     }
 }

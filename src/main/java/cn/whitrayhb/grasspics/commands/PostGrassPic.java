@@ -19,13 +19,13 @@ import net.mamoe.mirai.message.data.*;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
-import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PostGrassPic extends JRawCommand {
     private static final Vector<Long> nextAreYou = new Vector<>();
-    private static final LinkedHashMap<String , Image> imageCachePool = new LinkedHashMap<>();
+    private static final ConcurrentHashMap<String, Image> imageCachePool = new ConcurrentHashMap<>();
 
     public PostGrassPic() {
         super(GrasspicsMain.INSTANCE, "post-grass-pic", "投草图", "草图投稿", "投张草图", "投稿草图");
@@ -134,6 +134,26 @@ public class PostGrassPic extends JRawCommand {
         });
     }
 
+    public static void cacheImage(GroupMessageEvent e) {
+        for (SingleMessage singleMessage : e.getMessage()) {
+            if (singleMessage instanceof Image image) {
+                String id = e.getGroup().getId() + "-" + Objects.requireNonNull(e.getMessage().get(MessageSource.Key)).getIds()[0];
+                imageCachePool.put(id, image);
+                return;
+            }
+        }
+    }
+
+    public static void cacheImage(GroupMessagePostSendEvent e) {
+        for (SingleMessage singleMessage : e.getMessage()) {
+            if (singleMessage instanceof Image image) {
+                String id = e.getTarget().getId() + "-" + Objects.requireNonNull(e.getMessage().get(MessageSource.Key)).getIds()[0];
+                imageCachePool.put(id, image);
+                return;
+            }
+        }
+    }
+
     @Override
     public void onCommand(@NotNull CommandContext context, @NotNull MessageChain args) {
         CommandSender sender = context.getSender();
@@ -166,35 +186,38 @@ public class PostGrassPic extends JRawCommand {
                 return;
             }
         }
-        //命令前发图
+
+        //命令中发图
         MessageChain originalMessage = context.getOriginalMessage();
         QuoteReply quote = (QuoteReply) originalMessage.stream().filter(m -> m instanceof QuoteReply).findFirst().orElse(null);
-        if(quote!=null){
+        if (quote != null) {
             String id = sender.getSubject().getId() + "-" + quote.getSource().getIds()[0];
-            if(imageCachePool.get(id)!=null) {
-                Image image = imageCachePool.get(id);
-                if (image.getSize() > 2048000) {
-                    sender.getSubject().sendMessage("图片太大了, 请压缩一下再投稿!");
-                    return;
-                }
 
-                if (image.getImageType() == ImageType.GIF) {
-                    sender.getSubject().sendMessage("您发送了不支持投稿的图片类型!");
-                    return;
-                }
-
-                if (GrasspicsMain.shouldUsePublicPostingChannel()) {
-                    postToPublicChannel(sender, image);
-                    return;
-                }
-
-                postToPrivateChannel(sender, image);
+            if (!imageCachePool.containsKey(id)) {
+                sender.getSubject().sendMessage("该图片未在缓存中，请重新发送!");
                 return;
-            }else{
-                sender.sendMessage("该图片未在缓存中，请重新发送!");
             }
+
+            Image image = imageCachePool.get(id);
+            if (image.getSize() > 2048000) {
+                sender.getSubject().sendMessage("图片太大了, 请压缩一下再投稿!");
+                return;
+            }
+
+            if (image.getImageType() == ImageType.GIF) {
+                sender.getSubject().sendMessage("您发送了不支持投稿的图片类型!");
+                return;
+            }
+
+            if (GrasspicsMain.shouldUsePublicPostingChannel()) {
+                postToPublicChannel(sender, image);
+                return;
+            }
+
+            postToPrivateChannel(sender, image);
+            return;
         }
-        //命令后跟图
+
         SingleMessage sm = args.stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
         if (sm != null) {
             Image image = (Image) sm;
@@ -216,7 +239,8 @@ public class PostGrassPic extends JRawCommand {
             postToPrivateChannel(sender, image);
             return;
         }
-        //命令后发图
+
+        // 命令后发图
         sender.sendMessage("请把要投稿的图片发送给我吧~");
         nextAreYou.add(uid);
 
@@ -273,27 +297,5 @@ public class PostGrassPic extends JRawCommand {
             sender.getSubject().sendMessage("还没想好要发什么嘛，想起来再来投稿吧!");
             nextAreYou.remove(uid);
         }, PluginConfig.INSTANCE.postPictureTimeout.get());
-    }
-
-    public static void cacheImage(GroupMessageEvent e) {
-        for (SingleMessage singleMessage : e.getMessage()) {
-            if (singleMessage instanceof Image) {
-                String id = e.getGroup().getId() + "-" + Objects.requireNonNull(e.getMessage().get(MessageSource.Key)).getIds()[0];
-                imageCachePool.put(id, (Image) singleMessage);
-                return;
-            }
-        }
-    }
-    public static void cacheImage(GroupMessagePostSendEvent e) {
-        for (SingleMessage singleMessage : e.getMessage()) {
-            if (singleMessage instanceof Image) {
-                try {
-                    String id = e.getTarget().getId() + "-" + Objects.requireNonNull(e.getMessage().get(MessageSource.Key)).getIds()[0];
-                    imageCachePool.put(id, (Image) singleMessage);
-                    return;
-                } catch (Exception ignore) {
-                }
-            }
-        }
     }
 }

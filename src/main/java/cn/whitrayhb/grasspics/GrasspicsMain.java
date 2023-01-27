@@ -84,6 +84,9 @@ public final class GrasspicsMain extends JavaPlugin {
         CommandManager.INSTANCE.registerCommand(new GrassPicStatus(), true);
         CommandManager.INSTANCE.registerCommand(new PostGrassPic(), true);
 
+        GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessageEvent.class, PostGrassPic::cacheImage);
+        GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessagePostSendEvent.class, PostGrassPic::cacheImage);
+
         String SIMS_USER = SimSoftSecureConfig.INSTANCE.user.get();
         String SIMS_TOKEN = SimSoftSecureConfig.INSTANCE.token.get();
         if (SIMS_USER.isEmpty() || SIMS_TOKEN.isEmpty()) {
@@ -91,8 +94,7 @@ public final class GrasspicsMain extends JavaPlugin {
             getLogger().warning("您正在使用公共投稿通道，如图片违规次数过多，则机器人 IP 就可能会被封禁。");
             getLogger().warning("如果您不希望启用公共投稿，请关闭聊群内投稿权限。");
         }
-        GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessageEvent.class, PostGrassPic::cacheImage);
-        GlobalEventChannel.INSTANCE.subscribeAlways(GroupMessagePostSendEvent.class, PostGrassPic::cacheImage);
+
         checkUpdate();
     }
 }

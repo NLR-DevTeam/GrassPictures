@@ -28,7 +28,7 @@
 </details>
 
 
-## FAQs:
+## FAQs
 
 - **如何开始使用本插件?**
   
@@ -46,15 +46,15 @@
   
   目前 Mirai Console 插件中投稿功能已开放公众投稿通道，其投稿要求与主站相同，请不要投稿违规或灌水图片。多次投稿违规图片的用户 IP 可能会被**封禁**。
   
-  你可以前往 [草图官方网站](//grass.nlrdev.top/) 进行投稿，或是使用`草图投稿`命令进行投稿
+  你可以前往 [草图官方网站](//grass.nlrdev.top/) 进行投稿，或是使用 `草图投稿` 命令进行投稿
 
 - **为什么我输入指令没反应？**
   
-  您可能没有给予相对应的群权限,如果出现报错，请向我们反馈
+  您可能没有给予相对应的群权限；如果出现报错，请向我们反馈。
 
 - **配置文件中的 `user` 和 `token` 是干嘛的呢？**
 
-  配置文件中的 `user` 和 `token` 用于内部投稿通道使用，您可忽略此处的配置
+  配置文件中的 `user` 和 `token` 用于内部投稿通道使用，您可忽略此处的配置。
 ___
 您可加入我们的 [QQ群](https://qm.qq.com/cgi-bin/qm/qr?k=3fydvbI64F7r0Tz2Y5BTWfJi-irnBnSz&authKey=ib%2FY0l5RwzWu2X5cDRK%2FB2swvZotR7f68BpJWLy5TuT1vRQGjya%2FT36dgV1xn4fs&noverify=0&group_code=182850795) 了解更多
 

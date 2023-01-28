@@ -1,10 +1,12 @@
 package cn.whitrayhb.grasspics.commands;
 
 import cn.whitrayhb.grasspics.GrasspicsMain;
+import net.mamoe.mirai.console.command.CommandContext;
 import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.java.JRawCommand;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageChainBuilder;
+import net.mamoe.mirai.message.data.QuoteReply;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -17,7 +19,10 @@ public class GrassPicStatus extends JRawCommand {
     }
 
     @Override
-    public void onCommand(@NotNull CommandSender sender, @NotNull MessageChain args) {
+    public void onCommand(@NotNull CommandContext context, @NotNull MessageChain args) {
+        CommandSender sender = context.getSender();
+        MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(context.getOriginalMessage()));
+
         try {
             String info = GrassPic.fetchJson("https://grass.nlrdev.top/backend/status");
 
@@ -34,9 +39,9 @@ public class GrassPicStatus extends JRawCommand {
                     .append("\n插件版本: ").append(GrasspicsMain.INSTANCE.getDescription().getVersion().toString())
                     .build();
 
-            sender.sendMessage(message);
+            sender.sendMessage(builder.append(message).build());
         } catch (Exception ex) {
-            sender.sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
+            sender.sendMessage(builder.append("发生错误! 请到控制台获取详细信息: \n").append(String.valueOf(ex)).build());
             ex.printStackTrace();
         }
     }

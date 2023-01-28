@@ -27,6 +27,24 @@
   <img src="https://imgcdn.simsoft.top/1673953355-2A5D48FE-0C24-46C5-B6B7-139169EFECF5.jpeg" width="300px">
 </details>
 
+## Configs：
+本插件提供一些选项供您按需灵活配置，配置文件位于 `config/cn.whitrayhb.grasspics/Config.yml` 内。
+
+**对配置内容的说明如下：**
+- `getPictureLockTime`：每位群友执行 `生草` 指令的冷却时间，可用于防止刷屏。
+- `fetchPictureTimeout`：从草图服务接口获取图片的超时时间。
+- `postPictureLockTime`：每位群友执行 `投稿草图` 指令的冷却时间，推荐设置在 `10000` 以上。
+- `postPictureTimeout`：从 QQ 服务器中下载用户投稿图片与上传图片的超时时间，不推荐设置过低的数字。
+
+配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` 。
+
+**默认配置如下：**
+```yml
+getPictureLockTime: 30000
+fetchPictureTimeout: 10000
+postPictureLockTime: 10000
+postPictureTimeout: 30000
+```
 
 ## FAQs
 

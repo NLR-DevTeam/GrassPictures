@@ -32,14 +32,14 @@
 
 **对配置内容的说明如下：**
 
-名称|说明|默认值
+名称|说明|默认
 |--|--|--|
  `getPictureLockTime`|每位群友执行 `生草` 指令的冷却时间，可用于防止刷屏，设置 <0 时不进行冷却|30000
  `fetchPictureTimeout`|从草图服务接口下载图片时的超时时间，不推荐设置过低的数字|10000
  `postPictureLockTime`|每位群友执行 `投稿草图` 指令的冷却时间，推荐设置在 `10000` 以上|10000
  `postPictureTimeout`|从 QQ 服务器中下载用户投稿图片与上传图片的超时时间，不推荐设置过低的数字|30000
 
-配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
+Tip: 配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
 
 
 ## FAQs
@@ -68,7 +68,7 @@
 
 - **配置文件中的 `user` 和 `token` 是干嘛的呢？**
 
-  配置文件中的 `user` 和 `token` 用于内部投稿通道使用，您可忽略此处的配置。
+  配置文件 `SimsoftSecure.yml` 中的 `user` 和 `token` 用于内部投稿通道使用，您可忽略此处的配置并使用我们开放的投稿通道。
 ___
 您可加入我们的 [QQ群](https://qm.qq.com/cgi-bin/qm/qr?k=3fydvbI64F7r0Tz2Y5BTWfJi-irnBnSz&authKey=ib%2FY0l5RwzWu2X5cDRK%2FB2swvZotR7f68BpJWLy5TuT1vRQGjya%2FT36dgV1xn4fs&noverify=0&group_code=182850795) 了解更多
 

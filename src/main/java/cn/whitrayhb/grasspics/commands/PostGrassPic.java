@@ -56,7 +56,7 @@ public class PostGrassPic extends JRawCommand {
                 }
 
                 // Post Image
-                String postURL = "https://i.simsoft.top/grass/nlr/upload";
+                String postURL = "https://oss.grass.starxw.com/nlr/upload";
 
                 MultipartBody.Builder builder = new MultipartBody.Builder();
                 builder.setType(MultipartBody.FORM);
@@ -106,7 +106,7 @@ public class PostGrassPic extends JRawCommand {
                 }
 
                 // Post Image
-                String postURL = "https://grass.nlrdev.top/backend/upload";
+                String postURL = "https://oss.grass.starxw.com/service/upload";
 
                 MultipartBody.Builder builder = new MultipartBody.Builder();
                 builder.setType(MultipartBody.FORM);

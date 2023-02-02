@@ -60,7 +60,7 @@ public class GrassPic extends JRawCommand {
                 return null;
             }
 
-            Request imageReq = new Request.Builder().url("https://grass.nlrdev.top/backend/image?id=" + id).get().build();
+            Request imageReq = new Request.Builder().url("https://oss.grass.starxw.com/service/image?id=" + id).get().build();
             Response imageRes = GrasspicsMain.globalHttpClient.newCall(imageReq).execute();
             if (imageRes.body() == null) throw new Exception("Unexpected null body.");
 
@@ -107,7 +107,7 @@ public class GrassPic extends JRawCommand {
         // Open a thread and a watcher
         Future<?> task = GrasspicsMain.globalExecutorService.submit(() -> {
             try {
-                JSONObject jsonObject = new JSONObject(fetchJson("https://grass.nlrdev.top/backend/info" + (varArg == null ? "" : "?id=" + varArg)));
+                JSONObject jsonObject = new JSONObject(fetchJson("https://oss.grass.starxw.com/service/info" + (varArg == null ? "" : "?id=" + varArg)));
                 if (jsonObject.getInt("code") != 200) {
                     sender.sendMessage(builder.append("您指定的图片不存在!").build());
                     return;

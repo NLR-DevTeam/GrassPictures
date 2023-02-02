@@ -24,7 +24,7 @@ public class GrassPicStatus extends JRawCommand {
         MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(context.getOriginalMessage()));
 
         try {
-            String info = GrassPic.fetchJson("https://grass.nlrdev.top/backend/status");
+            String info = GrassPic.fetchJson("https://oss.grass.starxw.com/service/status");
 
             JSONObject jsonObject = new JSONObject(info);
             MessageChain message = new MessageChainBuilder()

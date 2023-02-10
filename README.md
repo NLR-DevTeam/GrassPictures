@@ -3,6 +3,10 @@
 
 <p align=center>一个 Mirai Console 插件，可在 QQ 群聊中 接入 NLR 草图大全的服务</p>
 
+## Terms:
+
+使用插件前，请阅读[《草图服务条款》](https://grass.nlrdev.top/tos)。
+
 ## Links：
 
 >[草图官方网站](https://grass.nlrdev.top)
@@ -46,7 +50,7 @@ Tip: 配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
 
 - **如何开始使用本插件?**
   
-  1）下载并配置 [Mirai Console Loader](//github.com/iTXTech/mirai-console-loader)
+  1）下载并配置 [Mirai Console Loader](//github.com/iTXTech/mirai-console-loader) ，请**使用 Java 17 **运行本插件
   
   2）安装前置 [Chat Command](//github.com/project-mirai/chat-command) 插件
   

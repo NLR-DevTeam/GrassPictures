@@ -73,15 +73,6 @@ public class GrassPic extends JRawCommand {
     public void onCommand(@NotNull CommandContext context, @NotNull MessageChain args) {
         UUID taskID = UUID.randomUUID();
         CommandSender sender = context.getSender();
-        MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(context.getOriginalMessage()));
-        String varArg;
-
-        /* Lambda Final - Cannot change */
-        if (args.size() > 0) {
-            varArg = args.get(0).contentToString().toLowerCase();
-        } else {
-            varArg = null;
-        }
 
         if (sender instanceof ConsoleCommandSender) {
             if (args.contains(new PlainText("reload"))) {
@@ -92,6 +83,16 @@ public class GrassPic extends JRawCommand {
 
             sender.sendMessage("请不要在控制台中运行该命令，如果需要重载配置，请使用 reload 子命令");
             return;
+        }
+
+        MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(context.getOriginalMessage()));
+        String varArg;
+
+        /* Lambda Final - Cannot change */
+        if (args.size() > 0) {
+            varArg = args.get(0).contentToString().toLowerCase();
+        } else {
+            varArg = null;
         }
 
         if (sender.getSubject() == null) return;

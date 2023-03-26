@@ -3,11 +3,11 @@
 
 <p align=center>一个 Mirai Console 插件，可在 QQ 群聊中 接入 NLR 草图大全的服务</p>
 
-## Terms:
+## Terms /
 
 使用插件前，请阅读[《草图服务条款》](https://grass.nlrdev.top/tos)。
 
-## Links：
+## Links /
 
 >[草图官方网站](https://grass.nlrdev.top)
 
@@ -16,7 +16,7 @@
 >[Mirai Forum 介绍帖](https://mirai.mamoe.net/topic/1965/grasspictures-随机获取生草插件)
 
 
-## Commands：
+## Commands /
 
 |名称|指令|指令功能|权限节点|
 |--|--|--|--|
@@ -31,7 +31,7 @@
   <img src="https://imgcdn.simsoft.top/1673953355-2A5D48FE-0C24-46C5-B6B7-139169EFECF5.jpeg" width="300px">
 </details>
 
-## Configs：
+## Configs /
 本插件提供一些选项供您按需灵活配置，配置文件位于 `config/cn.whitrayhb.grasspics/Config.yml` 内。
 
 **对配置内容的说明如下：**
@@ -46,7 +46,7 @@
 Tip: 配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
 
 
-## FAQs
+## FAQs /
 
 - **如何开始使用本插件?**
   
@@ -73,7 +73,8 @@ Tip: 配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
 - **配置文件中的 `user` 和 `token` 是干嘛的呢？**
 
   配置文件 `SimsoftSecure.yml` 中的 `user` 和 `token` 用于内部投稿通道使用，您可忽略此处的配置并使用我们开放的投稿通道。
-___
-您可加入我们的 [QQ群](https://qm.qq.com/cgi-bin/qm/qr?k=3fydvbI64F7r0Tz2Y5BTWfJi-irnBnSz&authKey=ib%2FY0l5RwzWu2X5cDRK%2FB2swvZotR7f68BpJWLy5TuT1vRQGjya%2FT36dgV1xn4fs&noverify=0&group_code=182850795) 了解更多
 
-___
+
+## More /
+您可加入我们的 [QQ群](https://join.nlrdev.top) 了解更多
+

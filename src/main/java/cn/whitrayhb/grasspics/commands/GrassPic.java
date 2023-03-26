@@ -22,9 +22,14 @@ import java.io.InterruptedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.Vector;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
 public class GrassPic extends JRawCommand {
+    private static final Vector<UUID> tasks = new Vector<>();
+
     public GrassPic() {
         super(GrasspicsMain.INSTANCE, "grass-pic", "来张草图", "生草");
         this.setDescription("来张草图");
@@ -32,19 +37,14 @@ public class GrassPic extends JRawCommand {
         this.setUsage("(/)生草  #来张草图");
     }
 
-    public static String fetchJson(String inURL) {
-        try {
-            Request request = new Request.Builder().url(inURL).get().build();
-            Response res = GrasspicsMain.globalHttpClient.newCall(request).execute();
+    public static String fetchJson(String inURL) throws Exception {
+        Request request = new Request.Builder().url(inURL).get().build();
+        Response res = GrasspicsMain.globalHttpClient.newCall(request).execute();
 
-            if (res.code() != 200) throw new RuntimeException("JSON 下载失败! 状态码为: " + res.code());
+        if (res.code() != 200) throw new RuntimeException("JSON 下载失败! 状态码为: " + res.code());
+        if (res.body() == null) throw new RuntimeException("响应体为空!");
 
-            if (res.body() == null) throw new RuntimeException("响应体为空!");
-
-            return res.body().string();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return res.body().string();
     }
 
     /**
@@ -78,6 +78,7 @@ public class GrassPic extends JRawCommand {
 
     @Override
     public void onCommand(@NotNull CommandContext context, @NotNull MessageChain args) {
+        UUID taskID = UUID.randomUUID();
         CommandSender sender = context.getSender();
         MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(context.getOriginalMessage()));
         String varArg;
@@ -102,6 +103,7 @@ public class GrassPic extends JRawCommand {
             return;
         }
 
+        tasks.add(taskID);
         Cooler.lock(uid, PluginConfig.INSTANCE.getPictureLockTime.get());
 
         // Open a thread and a watcher
@@ -122,9 +124,14 @@ public class GrassPic extends JRawCommand {
 
                     resource.close();
                 }
-            } catch (Exception ex) {
-                if (ex instanceof InterruptedIOException) return;
 
+                tasks.remove(taskID);
+            } catch (InterruptedIOException | InterruptedException | TimeoutException ignored) {
+                // Completely ignored
+            } catch (Exception ex) {
+                if (!tasks.contains(taskID)) return;
+
+                tasks.remove(taskID);
                 sender.sendMessage(builder.append("获取草图时发生错误，请稍后再试!\n").append(String.valueOf(ex)).build());
                 ex.printStackTrace();
             }
@@ -140,6 +147,9 @@ public class GrassPic extends JRawCommand {
             if (task.isDone() || task.isCancelled()) return;
             task.cancel(true);
 
+            if (!tasks.contains(taskID)) return;
+
+            tasks.remove(taskID);
             sender.sendMessage(builder.append("草图获取超时，请稍后重试!").build());
         });
     }

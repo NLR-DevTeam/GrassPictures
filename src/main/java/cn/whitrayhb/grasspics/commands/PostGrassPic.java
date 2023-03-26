@@ -217,6 +217,7 @@ public class PostGrassPic extends JRawCommand {
             }
 
             postImage(image, builder, sender);
+            return;
         }
 
         SingleMessage sm = args.stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);

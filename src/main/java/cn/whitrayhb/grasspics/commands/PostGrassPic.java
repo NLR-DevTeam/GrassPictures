@@ -19,6 +19,7 @@ import net.mamoe.mirai.message.data.*;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +35,7 @@ public class PostGrassPic extends JRawCommand {
         this.setUsage("(/)草图投稿  #草图投稿");
     }
 
-    public static void postToPrivateChannel(CommandSender sender, Image image) {
+    public static void postToPrivateChannel(CommandSender sender, byte[] imageBytes) {
         String SIMS_USER = SimSoftSecureConfig.INSTANCE.user.get();
         String SIMS_TOKEN = SimSoftSecureConfig.INSTANCE.token.get();
 
@@ -42,19 +43,6 @@ public class PostGrassPic extends JRawCommand {
             if (sender.getSubject() == null) return;
 
             try {
-                // Download Image
-                String queryURL = Image.queryUrl(image);
-                Request imageDownloadRequest = new Request.Builder().url(queryURL).get().build();
-                Response imageDownloadResponse = GrasspicsMain.globalHttpClient.newCall(imageDownloadRequest).execute();
-                if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
-                byte[] imageBytes = imageDownloadResponse.body().bytes();
-
-                String type = ImageUtil.getImageExt(imageBytes);
-                if (type.equals("unknown") || type.equals("gif")) {
-                    sender.sendMessage("此图片类型不受支持!");
-                    return;
-                }
-
                 // Post Image
                 String postURL = "https://oss.grass.starxw.com/nlr/upload";
 
@@ -78,8 +66,6 @@ public class PostGrassPic extends JRawCommand {
                     case "503" -> sender.sendMessage("你已被草图服务封禁，投稿失败。");
                     default -> sender.sendMessage("服务器响应无效: " + code);
                 }
-
-                imageDownloadResponse.close();
             } catch (Exception ex) {
                 sender.sendMessage("发生错误! 请到控制台获取详细信息: \n" + ex);
                 ex.printStackTrace();
@@ -87,24 +73,11 @@ public class PostGrassPic extends JRawCommand {
         });
     }
 
-    public static void postToPublicChannel(CommandSender sender, Image image) {
+    public static void postToPublicChannel(CommandSender sender, byte[] imageBytes) {
         GrasspicsMain.globalExecutorService.submit(() -> {
             if (sender.getSubject() == null) return;
 
             try {
-                // Download Image
-                String queryURL = Image.queryUrl(image);
-                Request imageDownloadRequest = new Request.Builder().url(queryURL).get().build();
-                Response imageDownloadResponse = GrasspicsMain.globalHttpClient.newCall(imageDownloadRequest).execute();
-                if (imageDownloadResponse.body() == null) throw new Exception("Empty response body.");
-                byte[] imageBytes = imageDownloadResponse.body().bytes();
-
-                String type = ImageUtil.getImageExt(imageBytes);
-                if (type.equals("unknown") || type.equals("gif")) {
-                    sender.sendMessage("此图片类型不受支持!");
-                    return;
-                }
-
                 // Post Image
                 String postURL = "https://oss.grass.starxw.com/service/upload";
 
@@ -158,13 +131,41 @@ public class PostGrassPic extends JRawCommand {
         }
     }
 
+    public static void postImage(Image image, MessageChainBuilder builder, CommandSender sender) {
+        byte[] imageBytes;
+        try {
+            // Download Image
+            String queryURL = Image.queryUrl(image);
+            Request imageDownloadRequest = new Request.Builder().url(queryURL).get().build();
+            Response imageDownloadResponse = GrasspicsMain.globalHttpClient.newCall(imageDownloadRequest).execute();
+            if (imageDownloadResponse.body() == null) throw new IOException("Empty response body.");
+            imageBytes = imageDownloadResponse.body().bytes();
+
+            String type = ImageUtil.getImageExt(imageBytes);
+            if (type.equals("unknown") || type.equals("gif")) {
+                sender.sendMessage(builder.append("您发送了不支持投稿的图片类型!").build());
+                return;
+            }
+        } catch (IOException e) {
+            sender.sendMessage(builder.append("机器人下载图片失败!").build());
+            return;
+        }
+
+        if (GrasspicsMain.shouldUsePublicPostingChannel()) {
+            postToPublicChannel(sender, imageBytes);
+            return;
+        }
+
+        postToPrivateChannel(sender, imageBytes);
+    }
+
     @Override
     public void onCommand(@NotNull CommandContext context, @NotNull MessageChain args) {
         CommandSender sender = context.getSender();
         MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(context.getOriginalMessage()));
 
         if (sender instanceof ConsoleCommandSender || sender.getSubject() == null) {
-            sender.sendMessage("请不要在控制台中运行该命令。");
+            sender.sendMessage("请不要在控制台中运行该命令");
             return;
         }
 
@@ -198,13 +199,13 @@ public class PostGrassPic extends JRawCommand {
         QuoteReply quote = (QuoteReply) originalMessage.stream().filter(m -> m instanceof QuoteReply).findFirst().orElse(null);
         if (quote != null) {
             String id = sender.getSubject().getId() + "-" + quote.getSource().getIds()[0];
+            Image image = imageCachePool.getOrDefault(id, null);
 
-            if (!imageCachePool.containsKey(id)) {
+            if (image == null) {
                 sender.sendMessage(builder.append("该图片未在缓存中，请重新在聊群中发送!").build());
                 return;
             }
 
-            Image image = imageCachePool.get(id);
             if (image.getSize() > 2048000) {
                 sender.sendMessage(builder.build());
                 return;
@@ -215,13 +216,7 @@ public class PostGrassPic extends JRawCommand {
                 return;
             }
 
-            if (GrasspicsMain.shouldUsePublicPostingChannel()) {
-                postToPublicChannel(sender, image);
-                return;
-            }
-
-            postToPrivateChannel(sender, image);
-            return;
+            postImage(image, builder, sender);
         }
 
         SingleMessage sm = args.stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
@@ -237,12 +232,7 @@ public class PostGrassPic extends JRawCommand {
                 return;
             }
 
-            if (GrasspicsMain.shouldUsePublicPostingChannel()) {
-                postToPublicChannel(sender, image);
-                return;
-            }
-
-            postToPrivateChannel(sender, image);
+            postImage(image, builder, sender);
             return;
         }
 
@@ -291,12 +281,7 @@ public class PostGrassPic extends JRawCommand {
 
             nextAreYou.remove(uid);
 
-            if (GrasspicsMain.shouldUsePublicPostingChannel()) {
-                postToPublicChannel(sender, image);
-                return;
-            }
-
-            postToPrivateChannel(sender, image);
+            postImage(image, builder, sender);
         }, exception -> {
             if (!nextAreYou.contains(uid)) return;
 

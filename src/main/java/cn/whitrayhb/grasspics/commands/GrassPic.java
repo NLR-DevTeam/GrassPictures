@@ -9,10 +9,7 @@ import net.mamoe.mirai.console.command.ConsoleCommandSender;
 import net.mamoe.mirai.console.command.java.JRawCommand;
 import net.mamoe.mirai.internal.deps.okhttp3.Request;
 import net.mamoe.mirai.internal.deps.okhttp3.Response;
-import net.mamoe.mirai.message.data.Image;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.MessageChainBuilder;
-import net.mamoe.mirai.message.data.QuoteReply;
+import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.utils.ExternalResource;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -47,11 +44,6 @@ public class GrassPic extends JRawCommand {
         return res.body().string();
     }
 
-    /**
-     * 下载图片
-     *
-     * @return 字符串，为带文件名的图片位置
-     */
     public static File fetchPicture(String id) throws Exception {
         try {
             File file = new File(GrasspicsMain.INSTANCE.getDataFolder(), "cache/");
@@ -65,10 +57,11 @@ public class GrassPic extends JRawCommand {
             if (imageRes.body() == null) throw new Exception("Unexpected null body.");
 
             Path cachePicturePath = new File(file, id).toPath();
-            Files.deleteIfExists(cachePicturePath);
-            Files.copy(imageRes.body().byteStream(), cachePicturePath);
+            if (!Files.exists(cachePicturePath)) {
+                Files.copy(imageRes.body().byteStream(), cachePicturePath);
+                GrasspicsMain.INSTANCE.getLogger().info("图片下载成功!");
+            }
 
-            GrasspicsMain.INSTANCE.getLogger().info("图片下载成功!");
             return cachePicturePath.toFile();
         } catch (Exception e) {
             GrasspicsMain.INSTANCE.getLogger().error("图片下载失败!");
@@ -83,6 +76,7 @@ public class GrassPic extends JRawCommand {
         MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(context.getOriginalMessage()));
         String varArg;
 
+        /* Lambda Final - Cannot change */
         if (args.size() > 0) {
             varArg = args.get(0).contentToString().toLowerCase();
         } else {
@@ -90,7 +84,13 @@ public class GrassPic extends JRawCommand {
         }
 
         if (sender instanceof ConsoleCommandSender) {
-            sender.sendMessage("请不要在控制台中运行该命令");
+            if (args.contains(new PlainText("reload"))) {
+                GrasspicsMain.INSTANCE.reload();
+                sender.sendMessage("重载配置成功!");
+                return;
+            }
+
+            sender.sendMessage("请不要在控制台中运行该命令，如果需要重载配置，请使用 reload 子命令");
             return;
         }
 
@@ -117,7 +117,7 @@ public class GrassPic extends JRawCommand {
 
                 File file = fetchPicture(jsonObject.getString("id"));
 
-                if (file != null) {
+                if (file != null && tasks.contains(taskID)) {
                     ExternalResource resource = ExternalResource.create(file);
                     Image image = sender.getSubject().uploadImage(resource);
                     sender.sendMessage(builder.append(image).build());

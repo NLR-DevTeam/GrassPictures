@@ -40,9 +40,7 @@ public final class GrasspicsMain extends JavaPlugin {
                 .author("NLR DevTeam")
                 .build());
 
-        reloadPluginConfig(SimSoftSecureConfig.INSTANCE);
-        reloadPluginConfig(PluginConfig.INSTANCE);
-        reloadPluginData(PluginData.INSTANCE);
+        reload();
     }
 
     public static boolean shouldUsePublicPostingChannel() {
@@ -57,8 +55,7 @@ public final class GrasspicsMain extends JavaPlugin {
         globalHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                INSTANCE.getLogger().error("检查更新失败!");
-                INSTANCE.getLogger().error(e);
+                INSTANCE.getLogger().error("检查更新失败: " + e);
             }
 
             @Override
@@ -96,5 +93,11 @@ public final class GrasspicsMain extends JavaPlugin {
         }
 
         checkUpdate();
+    }
+
+    public void reload() {
+        reloadPluginConfig(SimSoftSecureConfig.INSTANCE);
+        reloadPluginConfig(PluginConfig.INSTANCE);
+        reloadPluginData(PluginData.INSTANCE);
     }
 }

@@ -35,6 +35,13 @@ public class PostGrassPic extends JRawCommand {
         this.setUsage("(/)草图投稿  #草图投稿");
     }
 
+    /**
+     * 向内部投稿通道投稿 (需要鉴权)
+     *
+     * @param sender     命令发送者
+     * @param imageBytes 图片数据
+     * @see #onCommand(CommandContext, MessageChain)
+     */
     public static void postToPrivateChannel(CommandSender sender, byte[] imageBytes) {
         String SIMS_USER = SimSoftSecureConfig.INSTANCE.user.get();
         String SIMS_TOKEN = SimSoftSecureConfig.INSTANCE.token.get();
@@ -73,6 +80,13 @@ public class PostGrassPic extends JRawCommand {
         });
     }
 
+    /**
+     * 向公共投稿通道投稿
+     *
+     * @param sender     命令发送者
+     * @param imageBytes 图片数据
+     * @see #onCommand(CommandContext, MessageChain)
+     */
     public static void postToPublicChannel(CommandSender sender, byte[] imageBytes) {
         GrasspicsMain.globalExecutorService.submit(() -> {
             if (sender.getSubject() == null) return;
@@ -107,6 +121,12 @@ public class PostGrassPic extends JRawCommand {
         });
     }
 
+    /**
+     * 缓存聊群中的图片
+     *
+     * @param e 事件
+     * @see GrasspicsMain#onEnable()
+     */
     public static void cacheImage(GroupMessageEvent e) {
         for (SingleMessage singleMessage : e.getMessage()) {
             if (singleMessage instanceof Image image) {
@@ -117,6 +137,12 @@ public class PostGrassPic extends JRawCommand {
         }
     }
 
+    /**
+     * 缓存聊群中的图片
+     *
+     * @param e 事件
+     * @see GrasspicsMain#onEnable()
+     */
     public static void cacheImage(GroupMessagePostSendEvent e) {
         for (SingleMessage singleMessage : e.getMessage()) {
             if (singleMessage instanceof Image image) {
@@ -131,6 +157,13 @@ public class PostGrassPic extends JRawCommand {
         }
     }
 
+    /**
+     * 下载并自动选择投稿通道上传图片
+     *
+     * @param image   等待下载的 Mirai 图片
+     * @param builder 消息链，用于回复
+     * @param sender  发送者，用于回复与内部标识
+     */
     public static void postImage(Image image, MessageChainBuilder builder, CommandSender sender) {
         byte[] imageBytes;
         try {
@@ -159,6 +192,12 @@ public class PostGrassPic extends JRawCommand {
         postToPrivateChannel(sender, imageBytes);
     }
 
+    /**
+     * 触发命令
+     *
+     * @param context 命令上下文，用于获取源消息
+     * @param args    预期: [] / [Image]
+     */
     @Override
     public void onCommand(@NotNull CommandContext context, @NotNull MessageChain args) {
         CommandSender sender = context.getSender();
@@ -194,7 +233,7 @@ public class PostGrassPic extends JRawCommand {
             }
         }
 
-        //命令中发图
+        // 回复图片
         MessageChain originalMessage = context.getOriginalMessage();
         QuoteReply quote = (QuoteReply) originalMessage.stream().filter(m -> m instanceof QuoteReply).findFirst().orElse(null);
         if (quote != null) {
@@ -220,6 +259,7 @@ public class PostGrassPic extends JRawCommand {
             return;
         }
 
+        // 在命令的同一行发图
         SingleMessage sm = args.stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
         if (sm != null) {
             Image image = (Image) sm;

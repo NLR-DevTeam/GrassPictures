@@ -34,16 +34,32 @@ public class GrassPic extends JRawCommand {
         this.setUsage("(/)生草  #来张草图");
     }
 
+    /**
+     * 从网络获取 JSON
+     *
+     * @param inURL JSON URL
+     * @return JSON 内容 (String)
+     * @throws Exception 获取失败时抛出异常
+     * @see #onCommand(CommandContext, MessageChain)
+     */
     public static String fetchJson(String inURL) throws Exception {
         Request request = new Request.Builder().url(inURL).get().build();
         Response res = GrasspicsMain.globalHttpClient.newCall(request).execute();
 
-        if (res.code() != 200) throw new RuntimeException("JSON 下载失败! 状态码为: " + res.code());
-        if (res.body() == null) throw new RuntimeException("响应体为空!");
+        if (res.code() != 200) throw new Exception("JSON 下载失败! 状态码为: " + res.code());
+        if (res.body() == null) throw new Exception("响应体为空!");
 
         return res.body().string();
     }
 
+    /**
+     * 指定 ID 获取相应草图
+     *
+     * @param id 草图 ID
+     * @return 缓存后的草图文件
+     * @throws Exception 当获取失败时抛出
+     * @see #onCommand(CommandContext, MessageChain)
+     */
     public static File fetchPicture(String id) throws Exception {
         try {
             File file = new File(GrasspicsMain.INSTANCE.getDataFolder(), "cache/");
@@ -88,7 +104,7 @@ public class GrassPic extends JRawCommand {
         MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(context.getOriginalMessage()));
         String varArg;
 
-        /* Lambda Final - Cannot change */
+        /* Lambda Final - 我知道很粪 但改不了 */
         if (args.size() > 0) {
             varArg = args.get(0).contentToString().toLowerCase();
         } else {
@@ -138,6 +154,7 @@ public class GrassPic extends JRawCommand {
             }
         });
 
+        // 监视线程
         GrasspicsMain.globalExecutorService.submit(() -> {
             try {
                 Thread.sleep(PluginConfig.INSTANCE.getPictureTimeout.get());

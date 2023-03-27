@@ -6,6 +6,7 @@ import cn.whitrayhb.grasspics.commands.PostGrassPic;
 import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
 import cn.whitrayhb.grasspics.dataConfig.PluginData;
 import cn.whitrayhb.grasspics.dataConfig.SimSoftSecureConfig;
+import net.mamoe.mirai.console.command.CommandContext;
 import net.mamoe.mirai.console.command.CommandManager;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
@@ -13,6 +14,7 @@ import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessagePostSendEvent;
 import net.mamoe.mirai.internal.deps.okhttp3.*;
+import net.mamoe.mirai.message.data.MessageChain;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -43,10 +45,22 @@ public final class GrasspicsMain extends JavaPlugin {
         reload();
     }
 
+    /**
+     * 获取是否应该使用公共投稿通道
+     * 让值 "readonly"，需要通过 reload 改变
+     *
+     * @return 是否应该使用公共投稿通道
+     * @see #usePublicPosting
+     */
     public static boolean shouldUsePublicPostingChannel() {
         return usePublicPosting;
     }
 
+    /**
+     * 检查更新
+     *
+     * @see #onEnable()
+     */
     private static void checkUpdate() {
         INSTANCE.getLogger().info("正在检查更新...");
         String currentVersion = INSTANCE.getDescription().getVersion().toString();
@@ -75,6 +89,10 @@ public final class GrasspicsMain extends JavaPlugin {
         });
     }
 
+    /**
+     * 插件加载事件
+     * 会注册草图相关命令以及监听器。
+     */
     @Override
     public void onEnable() {
         CommandManager.INSTANCE.registerCommand(new GrassPic(), true);
@@ -95,6 +113,12 @@ public final class GrasspicsMain extends JavaPlugin {
         checkUpdate();
     }
 
+    /**
+     * 重载插件配置与数据
+     *
+     * @see #GrasspicsMain()
+     * @see GrassPic#onCommand(CommandContext, MessageChain)
+     */
     public void reload() {
         reloadPluginConfig(SimSoftSecureConfig.INSTANCE);
         reloadPluginConfig(PluginConfig.INSTANCE);

@@ -2,6 +2,12 @@
 <p align=center><b>🤖 Mirai Console Plugin 🤖</b></p>
 
 <p align=center>一个 Mirai Console 插件，可在 QQ 群聊中 接入 NLR 草图大全的服务</p>
+<p align=center>
+  <img src="https://img.shields.io/codefactor/grade/github/NLR-DevTeam/GrassPictures">
+  <img src="https://img.shields.io/github/languages/code-size/NLR-DevTeam/GrassPictures">
+  <img src="https://img.shields.io/github/v/release/NLR-DevTeam/GrassPictures">
+  <img src="https://img.shields.io/github/stars/NLR-DevTeam/GrassPictures">
+</p>
 
 ## Terms /
 

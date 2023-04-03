@@ -34,35 +34,40 @@
 
 <details>
   <summary>效果预览</summary>
-  <img src="https://imgcdn.simsoft.top/1674283139-BE788259-842F-4583-A744-E5D786D62653.jpeg" width="300px">
-  <img src="https://imgcdn.simsoft.top/1673953098-53A45BD7-A8F1-4581-BAEE-EBB5A7619A86.jpeg" width="300px">
-  <img src="https://imgcdn.simsoft.top/1673953355-2A5D48FE-0C24-46C5-B6B7-139169EFECF5.jpeg" width="300px">
+  <p align=center>
+    <img src="https://imgcdn.simsoft.top/1674283139-BE788259-842F-4583-A744-E5D786D62653.jpeg" width="300px">
+    <img src="https://imgcdn.simsoft.top/1673953098-53A45BD7-A8F1-4581-BAEE-EBB5A7619A86.jpeg" width="300px">
+    <img src="https://imgcdn.simsoft.top/1673953355-2A5D48FE-0C24-46C5-B6B7-139169EFECF5.jpeg" width="300px">
+  </p>
 </details>
 
-## Configs /
+## Configurations /
 本插件提供一些选项供您按需灵活配置，配置文件位于 `config/cn.whitrayhb.grasspics/Config.yml` 内。
 
 **对配置内容的说明如下：**
 
 名称|说明|默认
 |--|--|--|
- `getPictureLockTime`|每位群友执行 `生草` 指令的冷却时间，可用于防止刷屏，设置 <0 时不进行冷却|30000
+ `getPictureLockTime`|每位群友执行 `生草` 指令的冷却时间，可用于防止刷屏，设置 `<= 0` 时不进行冷却|30000
  `fetchPictureTimeout`|从草图服务接口下载图片时的超时时间，不推荐设置过低的数字|10000
  `postPictureLockTime`|每位群友执行 `投稿草图` 指令的冷却时间，推荐设置在 `10000` 以上|10000
  `postPictureTimeout`|从 QQ 服务器中下载用户投稿图片与上传图片的超时时间，不推荐设置过低的数字|30000
 
 Tip: 配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
 
+## Tips /
+
+后排提示，请仅在您信任的聊群中开启草图投稿权限，若您使用公共投稿通道且**非您本人**投稿了违规图片导致 IP 被封禁，请加入我们的聊群 (位于底部) 并提供相关的聊天记录，我们会为您进行解封。
 
 ## FAQs /
 
 - **如何开始使用本插件?**
   
-  1）下载并配置 [Mirai Console Loader](//github.com/iTXTech/mirai-console-loader) ，请**使用 Java 17** 运行本插件
+  1）下载并配置 [Mirai Console Loader](//github.com/iTXTech/mirai-console-loader) ，请 **使用 Java 17** 运行本插件
   
   2）安装前置 [Chat Command](//github.com/project-mirai/chat-command) 插件
   
-  3）在 [Releases](//github.com/NLR-DevTeam/GrassPictures/releases) 页面下载最新的 `.jar` 文件，放入 MCL 下 `plugins` 目录下
+  3）在 [Releases](//github.com/NLR-DevTeam/GrassPictures/releases) 页面下载最新的 `.jar` 文件，放入 MCL 根目录下的 `plugins` 目录中
   
   4）授予成员相应的权限节点 [权限节点说明文档](https://docs.mirai.mamoe.net/console/Permissions.html)
   
@@ -78,11 +83,11 @@ Tip: 配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
   
   您可能没有给予相对应的群权限；如果出现报错，请向我们反馈。
 
-- **配置文件中的 `user` 和 `token` 是干嘛的呢？**
+- **另一个配置文件是干嘛的呢？**
 
-  配置文件 `SimsoftSecure.yml` 中的 `user` 和 `token` 用于内部投稿通道使用，您可忽略此处的配置并使用我们开放的投稿通道。
+  配置文件 `SimsoftSecure.yml` 中的 `user` 和 `token` 用于切换到内部投稿通道，您可留空此处的配置并使用我们开放的公共投稿通道。
 
 
 ## More /
-您可加入我们的 [QQ群](https://join.nlrdev.top) 了解更多
+您可加入我们的 [QQ群](https://join.nlrdev.top) 了解更多。
 

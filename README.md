@@ -30,6 +30,8 @@
 |**草图信息**|<li>草图信息</li><li>grass-pic-status</li>|获取草图当前状态|`cn.whitrayhb.grasspics:command.grass-pic-status`|
 |**投稿草图**|<li>草图投稿</li><li>投稿草图</li><li>post-grass-pic</li>|向草图库投稿|`cn.whitrayhb.grasspics:command.post-grass-pic`|
 
+*您可以在控制台使用 `grass-pic reload` 命令来重载插件数据与配置*
+
 <details>
   <summary>效果预览</summary>
   <img src="https://imgcdn.simsoft.top/1674283139-BE788259-842F-4583-A744-E5D786D62653.jpeg" width="300px">

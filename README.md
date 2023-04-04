@@ -3,10 +3,10 @@
 
 <p align=center>一个 Mirai Console 插件，可在 QQ 群聊中 接入 NLR 草图大全的服务</p>
 <p align=center>
-  <img src="https://img.shields.io/codefactor/grade/github/NLR-DevTeam/GrassPictures?label=Code%20Quality">
-  <img src="https://img.shields.io/github/languages/code-size/NLR-DevTeam/GrassPictures?label=Code%20Size">
-  <img src="https://img.shields.io/github/v/release/NLR-DevTeam/GrassPictures?label=Latest%20Release">
-  <img src="https://img.shields.io/github/stars/NLR-DevTeam/GrassPictures?label=Stars">
+  <a href="https://github.com/NLR-DevTeam/GrassPictures/tree/master/src/main"><img src="https://img.shields.io/codefactor/grade/github/NLR-DevTeam/GrassPictures?label=Code%20Quality"></a>
+  <a href="https://github.com/NLR-DevTeam/GrassPictures/tree/master/src/main"><img src="https://img.shields.io/github/languages/code-size/NLR-DevTeam/GrassPictures?label=Code%20Size"></a>
+  <a href="https://github.com/NLR-DevTeam/GrassPictures/releases/"><img src="https://img.shields.io/github/v/release/NLR-DevTeam/GrassPictures?label=Latest%20Release"></a>
+  <a href="https://github.com/NLR-DevTeam/GrassPictures/stargazers"><img src="https://img.shields.io/github/stars/NLR-DevTeam/GrassPictures?label=Stars"></a>
 </p>
 
 ## Terms /

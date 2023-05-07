@@ -36,7 +36,7 @@ public final class GrasspicsMain extends JavaPlugin {
     private static boolean usePublicPosting = false;
 
     private GrasspicsMain() {
-        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.2.0")
+        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.2.1")
                 .name("草图插件")
                 .info("草图适配插件")
                 .author("NLR DevTeam")

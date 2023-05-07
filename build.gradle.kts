@@ -3,11 +3,11 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
-    id("net.mamoe.mirai-console") version "2.13.4"
+    id("net.mamoe.mirai-console") version "2.14.0"
 }
 
 group = "cn.whitrayhb"
-version = "1.2.0"
+version = "1.2.1"
 
 repositories {
     if (System.getenv("CI")?.toBoolean() != true) {
@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    implementation("org.json:json:20220924")
-    compileOnly("net.mamoe:mirai-core-jvm:2.13.4")
+    implementation("org.json:json:20230227")
+    compileOnly("net.mamoe:mirai-core-jvm:2.14.0")
 }
 
 tasks.withType<Jar>() {

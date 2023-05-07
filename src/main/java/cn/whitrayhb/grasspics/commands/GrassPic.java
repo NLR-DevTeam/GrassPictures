@@ -15,14 +15,14 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 
 public class GrassPic extends JRawCommand {
     private static final Vector<UUID> tasks = new Vector<>();
@@ -68,15 +68,15 @@ public class GrassPic extends JRawCommand {
                 return null;
             }
 
+            Path cachePicturePath = new File(file, id).toPath();
+
             Request imageReq = new Request.Builder().url("https://oss.grass.starxw.com/service/image?id=" + id).get().build();
             Response imageRes = GrasspicsMain.globalHttpClient.newCall(imageReq).execute();
             if (imageRes.body() == null) throw new Exception("Unexpected null body.");
 
-            Path cachePicturePath = new File(file, id).toPath();
-            if (!Files.exists(cachePicturePath)) {
-                Files.copy(imageRes.body().byteStream(), cachePicturePath);
-                GrasspicsMain.INSTANCE.getLogger().info("图片下载成功!");
-            }
+            Files.deleteIfExists(cachePicturePath);
+            Files.copy(imageRes.body().byteStream(), cachePicturePath);
+            GrasspicsMain.INSTANCE.getLogger().info("图片下载成功!");
 
             return cachePicturePath.toFile();
         } catch (Exception e) {
@@ -127,12 +127,41 @@ public class GrassPic extends JRawCommand {
         Future<?> task = GrasspicsMain.globalExecutorService.submit(() -> {
             try {
                 JSONObject jsonObject = new JSONObject(fetchJson("https://oss.grass.starxw.com/service/info" + (varArg == null ? "" : "?id=" + varArg)));
-                if (jsonObject.getInt("code") != 200) {
-                    sender.sendMessage(builder.append("您指定的图片不存在!").build());
+
+                int code = jsonObject.getInt("code");
+                if (code != 200) {
+                    String message = switch (code) {
+                        case 400 -> "操作太快，机器人被限流了，请过一会再试。";
+                        case 403 -> "机器人 IP 地址已被加入黑名单!";
+                        case 503 -> "草图服务接口目前正在维护，请耐心等待。";
+                        case 999 -> "服务端返回内容: " + jsonObject.getString("msg");
+                        case 1000 -> "您指定的图片不存在!";
+                        default -> "服务端响应无效: " + code;
+                    };
+
+                    sender.sendMessage(builder.append(message).build());
                     return;
                 }
 
-                File file = fetchPicture(jsonObject.getString("id"));
+                File file;
+                try {
+                    file = fetchPicture(jsonObject.getString("id"));
+                } catch (IOException ex) {
+                    // Connect failed, use cache image
+                    Stream<Path> stream = Files.list(new File(GrasspicsMain.INSTANCE.getDataFolder(), "cache/").toPath());
+
+                    List<Path> list = stream.toList();
+                    stream.close();
+
+                    if (list.size() == 0) {
+                        throw new Exception("获取图片失败，且缓存中没有图片。");
+                    }
+
+                    Random random = new Random();
+                    Path randomInCache = list.get(random.nextInt(list.size() - 1));
+
+                    file = randomInCache.toFile();
+                }
 
                 if (file != null && tasks.contains(taskID)) {
                     ExternalResource resource = ExternalResource.create(file);

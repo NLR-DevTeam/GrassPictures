@@ -68,6 +68,7 @@ public class PostGrassPic extends JRawCommand {
 
                 switch (code) {
                     case "200" -> sender.sendMessage("投稿成功, 正在等待审核。");
+                    case "400" -> sender.sendMessage("操作太快了，机器人已被限流，请稍后再试!");
                     case "401" -> sender.sendMessage("鉴权信息无效, 请检查配置文件。");
                     case "403" -> sender.sendMessage("图片太大了, 投稿失败。");
                     case "503" -> sender.sendMessage("你已被草图服务封禁，投稿失败。");
@@ -107,9 +108,10 @@ public class PostGrassPic extends JRawCommand {
 
                 switch (code) {
                     case 200 -> sender.sendMessage("投稿成功, 正在等待审核。");
-                    case 400 -> sender.sendMessage("图片格式无效!");
-                    case 403 -> sender.sendMessage("图片太大，投稿失败。");
-                    case 503 -> sender.sendMessage("机器人已被草图服务封禁，投稿失败。");
+                    case 400 -> sender.sendMessage("操作太快了，机器人已被限流，请稍后再试!");
+                    case 403 -> sender.sendMessage("机器人已被草图服务封禁，投稿失败。");
+                    case 1000 -> sender.sendMessage("图片格式无效!");
+                    case 1001 -> sender.sendMessage("图片太大，投稿失败。");
                     default -> sender.sendMessage("服务器响应无效: " + code);
                 }
             } catch (Exception ex) {
@@ -150,6 +152,7 @@ public class PostGrassPic extends JRawCommand {
                     String id = e.getTarget().getId() + "-" + Objects.requireNonNull(e.getMessage().get(MessageSource.Key)).getIds()[0];
                     imageCachePool.put(id, image);
                 } catch (Exception ignored) {
+                    // Do nothing here
                 }
 
                 return;
@@ -166,6 +169,7 @@ public class PostGrassPic extends JRawCommand {
      */
     public static void postImage(Image image, MessageChainBuilder builder, CommandSender sender) {
         byte[] imageBytes;
+
         try {
             // Download Image
             String queryURL = Image.queryUrl(image);

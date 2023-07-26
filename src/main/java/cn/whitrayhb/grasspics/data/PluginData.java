@@ -1,4 +1,4 @@
-package cn.whitrayhb.grasspics.dataConfig;
+package cn.whitrayhb.grasspics.data;
 
 import net.mamoe.mirai.console.data.Value;
 import net.mamoe.mirai.console.data.java.JavaAutoSavePluginData;

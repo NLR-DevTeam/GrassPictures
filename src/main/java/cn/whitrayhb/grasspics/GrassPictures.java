@@ -3,9 +3,9 @@ package cn.whitrayhb.grasspics;
 import cn.whitrayhb.grasspics.commands.GrassPic;
 import cn.whitrayhb.grasspics.commands.GrassPicStatus;
 import cn.whitrayhb.grasspics.commands.PostGrassPic;
-import cn.whitrayhb.grasspics.dataConfig.PluginConfig;
-import cn.whitrayhb.grasspics.dataConfig.PluginData;
-import cn.whitrayhb.grasspics.dataConfig.SimSoftSecureConfig;
+import cn.whitrayhb.grasspics.data.PluginConfig;
+import cn.whitrayhb.grasspics.data.PluginData;
+import cn.whitrayhb.grasspics.data.SimSoftSecureConfig;
 import net.mamoe.mirai.console.command.CommandContext;
 import net.mamoe.mirai.console.command.CommandManager;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
@@ -14,29 +14,41 @@ import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessagePostSendEvent;
 import net.mamoe.mirai.internal.deps.okhttp3.*;
-import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.*;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public final class GrasspicsMain extends JavaPlugin {
-    public static final OkHttpClient globalHttpClient = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build();
-    public static final GrasspicsMain INSTANCE = new GrasspicsMain();
+public final class GrassPictures extends JavaPlugin {
+    public static final OkHttpClient globalHttpClient = new OkHttpClient.Builder()
+            .connectTimeout(3, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .build();
     public static final ExecutorService globalExecutorService = Executors.newFixedThreadPool(16);
+    public static final Timer globalTimer = new Timer("GrassPicture Timer", true);
+    public static final String VERSION = "1.2.1";
     public static final String TEXT_RULES = """
             1.请投稿能使多数人觉得有趣的图片
-            2.严禁任何违法、涉政等图片上传
-            3.禁止任何色情、擦边等图片上传
-            4.禁止任何含有个人广告的图片上传
-            5.禁止任何无关图片、灌水内容上传""";
+            2.严禁上传任何包含违法、涉政等信息的图片
+            3.禁止上传任何包含色情、擦边等令人反感的图片
+            4.禁止上传任何含有个人广告的图片
+            5.禁止上传任何无关图片、灌水内容""";
+    public static final String QUERY_URL = "https://oss.grass.starxw.com/service/info";
+    public static final String IMAGE_URL = "https://oss.grass.starxw.com/service/image";
+    public static final String PUBLIC_POST_URL = "https://oss.grass.starxw.com/service/upload";
+    public static final String STATUS_URL = "https://oss.grass.starxw.com/service/status";
+    public static GrassPictures INSTANCE = null;
+    public static String latestVersion = null;
     private static boolean usePublicPosting = false;
 
-    private GrasspicsMain() {
-        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", "1.2.1")
+    private GrassPictures() {
+        super(new JvmPluginDescriptionBuilder("cn.whitrayhb.grasspics", VERSION)
                 .name("草图插件")
                 .info("草图适配插件")
                 .author("NLR DevTeam")
@@ -69,24 +81,44 @@ public final class GrasspicsMain extends JavaPlugin {
         globalHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                INSTANCE.getLogger().error("检查更新失败: " + e);
+                INSTANCE.getLogger().error("检查更新失败：" + e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.body() == null) throw new RuntimeException("Unexpected null body.");
-                JSONObject jsonObject = new JSONObject(response.body().string());
-                String latestVersion = jsonObject.getString("tag_name");
+                if (response.body() == null) {
+                    throw new RuntimeException("Unexpected null body.");
+                }
 
-                if (currentVersion.equals(latestVersion)) {
-                    INSTANCE.getLogger().info("您正在运行最新版本!");
+                JSONObject jsonObject = new JSONObject(response.body().string());
+                String ver = jsonObject.getString("tag_name");
+
+                if (currentVersion.equals(ver)) {
+                    INSTANCE.getLogger().info("您正在运行最新版本！");
                     return;
                 }
 
-                INSTANCE.getLogger().info("发现插件更新: v" + latestVersion);
-                INSTANCE.getLogger().info("访问 https://github.com/NLR-DevTeam/GrassPictures/releases/latest 下载最新版本.");
+                latestVersion = ver;
+                INSTANCE.getLogger().info("发现插件更新：v" + ver);
+                INSTANCE.getLogger().info("访问 https://github.com/NLR-DevTeam/GrassPictures/releases/latest 以下载最新版本。");
             }
         });
+    }
+
+    public static MessageChain wrap(@NotNull CommandContext context, @NotNull Object messageToWrap) {
+        Message message;
+        if (messageToWrap instanceof String string) {
+            message = new PlainText(string);
+        } else if (messageToWrap instanceof Message msg) {
+            message = msg;
+        } else {
+            throw new IllegalArgumentException("Message or String expected.");
+        }
+
+        return new MessageChainBuilder()
+                .append(new QuoteReply(context.getOriginalMessage()))
+                .append(message)
+                .build();
     }
 
     /**
@@ -110,13 +142,18 @@ public final class GrasspicsMain extends JavaPlugin {
             getLogger().warning("如果您不希望启用公共投稿，请关闭聊群内投稿权限。");
         }
 
-        checkUpdate();
+        globalTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                checkUpdate();
+            }
+        }, 0, TimeUnit.HOURS.toMillis(12));
     }
 
     /**
      * 重载插件配置与数据
      *
-     * @see #GrasspicsMain()
+     * @see #GrassPictures()
      * @see GrassPic#onCommand(CommandContext, MessageChain)
      */
     public void reload() {

@@ -2,7 +2,7 @@ package cn.whitrayhb.grasspics.utils;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Cooler {
+public class Locker {
     private static final ConcurrentHashMap<Long, Long> coolDownMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, Long> lockTimeMap = new ConcurrentHashMap<>();
 
@@ -12,7 +12,10 @@ public class Cooler {
     }
 
     public static synchronized boolean isLocked(long uid) {
-        if (!coolDownMap.containsKey(uid) || !lockTimeMap.containsKey(uid)) return false;
+        if (!coolDownMap.containsKey(uid) || !lockTimeMap.containsKey(uid)) {
+            return false;
+        }
+
         return (System.currentTimeMillis() - coolDownMap.get(uid)) <= lockTimeMap.get(uid);
     }
 }

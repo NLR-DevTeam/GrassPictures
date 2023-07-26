@@ -53,7 +53,9 @@ public class MessageListener {
                     return;
                 }
 
-                if (message == null) return;
+                if (message == null) {
+                    return;
+                }
 
                 onSuccess.accept(message);
                 this.cancel();

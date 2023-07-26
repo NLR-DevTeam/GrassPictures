@@ -1,4 +1,4 @@
-package cn.whitrayhb.grasspics.dataConfig;
+package cn.whitrayhb.grasspics.data;
 
 import net.mamoe.mirai.console.data.Value;
 import net.mamoe.mirai.console.data.java.JavaAutoSavePluginConfig;
@@ -10,7 +10,8 @@ public class PluginConfig extends JavaAutoSavePluginConfig {
     public Value<Long> postPictureLockTime = value("postPictureLockTime", 10 * 1000L);
     public Value<Long> postPictureTimeout = value("postPictureTimeout", 30 * 1000L);
     public Value<Boolean> isQuotePostEnabled = value("isQuotePostEnabled", true);
-    public Value<String> NLRPassToken = value("NLRPassToken","");
+    public Value<String> NLRPassToken = value("NLRPassToken", "");
+
     private PluginConfig() {
         super("Config");
     }

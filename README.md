@@ -51,6 +51,8 @@
  `fetchPictureTimeout`|从草图服务接口下载图片时的超时时间，不推荐设置过低的数字|10000
  `postPictureLockTime`|每位群友执行 `投稿草图` 指令的冷却时间，推荐设置在 `10000` 以上|10000
  `postPictureTimeout`|从 QQ 服务器中下载用户投稿图片与上传图片的超时时间，不推荐设置过低的数字|30000
+ `isQuotePostEnabled`|是否启用回复消息投稿，默认启用|true
+ `NLRPassToken`|在 NLR Pass 管理页获取的接口密钥|空
 
 Tip#1: 配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
 

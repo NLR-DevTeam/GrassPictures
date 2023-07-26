@@ -9,11 +9,11 @@
   <a href="https://github.com/NLR-DevTeam/GrassPictures/stargazers"><img src="https://img.shields.io/github/stars/NLR-DevTeam/GrassPictures?label=Stars"></a>
 </p>
 
-## Terms /
+## Terms / 服务条款
 
 使用本插件即代表您已阅读并同意[草图服务条款](https://grass.nlrdev.top/tos)。
 
-## Links /
+## Links / 相关链接
 
 >[草图官方网站](https://grass.nlrdev.top)
 
@@ -22,7 +22,7 @@
 >[Mirai Forum 介绍帖](https://mirai.mamoe.net/topic/1965/grasspictures-随机获取生草插件)
 
 
-## Commands /
+## Commands / 命令
 
 |名称|指令|指令功能|权限节点|
 |--|--|--|--|
@@ -40,7 +40,7 @@
 </details>
 
 
-## Options /
+## Options / 设置
 本插件提供一些选项供您按需灵活配置，配置文件位于 `config/cn.whitrayhb.grasspics/Config.yml` 内。
 
 **对配置内容的说明如下：**
@@ -56,7 +56,7 @@ Tip#1: 配置中出现的时间单位均为 `ms` (毫秒) 而不是 `s` (秒)
 
 Tip#2: 修改配置文件后，您可以在控制台使用 `grass-pic reload` 命令重载插件
 
-## FAQs /
+## FAQs / 常见问题
 
 - **如何开始使用本插件?**
   
@@ -85,7 +85,7 @@ Tip#2: 修改配置文件后，您可以在控制台使用 `grass-pic reload` �
   配置文件 `SimsoftSecure.yml` 用于内部投稿鉴权，您只需忽略此处的配置并使用我们开放的公共投稿通道。
 
 
-## Tips /
+## Tips / 小提醒
 
 请使用 **Java 17** 运行 MCL 并加载此插件，使用低版本的 Java 将导致插件无法正常加载。
 
@@ -94,6 +94,6 @@ Tip#2: 修改配置文件后，您可以在控制台使用 `grass-pic reload` �
 若您使用插件时，其他用户恶意利用 Bot 投稿违规图片导致您被加入黑名单，请加入页面底部的社群并提供相关的聊天记录进行申诉，我们将视情况进行解封。
 
 
-## More /
+## More / 更多
 您可加入我们的 [QQ社群](https://join.nlrdev.top) 进行提问或了解更多。
 

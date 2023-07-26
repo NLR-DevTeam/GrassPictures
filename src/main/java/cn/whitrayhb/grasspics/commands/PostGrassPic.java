@@ -94,7 +94,7 @@ public class PostGrassPic extends JRawCommand {
 
             try {
                 // Post Image
-                String postURL = "https://oss.grass.starxw.com/service/upload";
+                String postURL = "https://oss.grass.starxw.com/service/upload?token="+PluginConfig.INSTANCE.NLRPassToken.get();
 
                 MultipartBody.Builder builder = new MultipartBody.Builder();
                 builder.setType(MultipartBody.FORM);
@@ -152,9 +152,8 @@ public class PostGrassPic extends JRawCommand {
                     String id = e.getTarget().getId() + "-" + Objects.requireNonNull(e.getMessage().get(MessageSource.Key)).getIds()[0];
                     imageCachePool.put(id, image);
                 } catch (Exception ignored) {
-                    // Do nothing here
+                    // Jue XIAYM here
                 }
-
                 return;
             }
         }
@@ -240,7 +239,7 @@ public class PostGrassPic extends JRawCommand {
         // 回复图片
         MessageChain originalMessage = context.getOriginalMessage();
         QuoteReply quote = (QuoteReply) originalMessage.stream().filter(m -> m instanceof QuoteReply).findFirst().orElse(null);
-        if (quote != null) {
+        if (quote != null && PluginConfig.INSTANCE.isQuotePostEnabled.get()) {
             String id = sender.getSubject().getId() + "-" + quote.getSource().getIds()[0];
             Image image = imageCachePool.getOrDefault(id, null);
 

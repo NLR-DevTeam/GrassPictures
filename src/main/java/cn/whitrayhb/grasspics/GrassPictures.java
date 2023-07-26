@@ -75,7 +75,6 @@ public final class GrassPictures extends JavaPlugin {
      */
     private static void checkUpdate() {
         INSTANCE.getLogger().info("正在检查更新...");
-        String currentVersion = INSTANCE.getDescription().getVersion().toString();
         Request request = new Request.Builder().url("https://api.github.com/repos/NLR-DevTeam/GrassPictures/releases/latest").get().build();
 
         globalHttpClient.newCall(request).enqueue(new Callback() {
@@ -93,7 +92,7 @@ public final class GrassPictures extends JavaPlugin {
                 JSONObject jsonObject = new JSONObject(response.body().string());
                 String ver = jsonObject.getString("tag_name");
 
-                if (currentVersion.equals(ver)) {
+                if (VERSION.equals(ver)) {
                     INSTANCE.getLogger().info("您正在运行最新版本！");
                     return;
                 }

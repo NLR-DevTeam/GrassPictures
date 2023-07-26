@@ -81,7 +81,7 @@ public class PostGrassPic extends JRawCommand {
                     default -> sender.sendMessage("服务器响应无效：" + code);
                 }
             } catch (Exception ex) {
-                sender.sendMessage("发生错误! 请到控制台获取详细信息：\n" + ex);
+                sender.sendMessage("发生错误！请到控制台获取详细信息：\n" + ex);
                 ex.printStackTrace();
             }
         });
@@ -127,6 +127,7 @@ public class PostGrassPic extends JRawCommand {
                 switch (code) {
                     case 200 -> sender.sendMessage("投稿成功, 正在等待审核。");
                     case 400 -> sender.sendMessage("操作太快了，机器人已被限流，请稍后再试！");
+                    case 401 -> sender.sendMessage("NLR Pass Token 无效，请通知机器人所有者检查。");
                     case 403 -> sender.sendMessage("机器人已被草图服务封禁，投稿失败。");
                     case 1000 -> sender.sendMessage("图片格式无效！");
                     case 1001 -> sender.sendMessage("图片太大，投稿失败。");

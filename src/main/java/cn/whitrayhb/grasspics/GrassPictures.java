@@ -32,7 +32,7 @@ public final class GrassPictures extends JavaPlugin {
             .build();
     public static final ExecutorService globalExecutorService = Executors.newFixedThreadPool(16);
     public static final Timer globalTimer = new Timer("GrassPicture Timer", true);
-    public static final String VERSION = "1.2.1";
+    public static final String VERSION = "1.2.2";
     public static final String TEXT_RULES = """
             1.请投稿能使多数人觉得有趣的图片
             2.严禁上传任何包含违法、涉政等信息的图片
@@ -43,7 +43,7 @@ public final class GrassPictures extends JavaPlugin {
     public static final String IMAGE_URL = "https://oss.grass.starxw.com/service/image";
     public static final String PUBLIC_POST_URL = "https://oss.grass.starxw.com/service/upload";
     public static final String STATUS_URL = "https://oss.grass.starxw.com/service/status";
-    public static GrassPictures INSTANCE = null;
+    public static GrassPictures INSTANCE = new GrassPictures();
     public static String latestVersion = null;
     private static boolean usePublicPosting = false;
 

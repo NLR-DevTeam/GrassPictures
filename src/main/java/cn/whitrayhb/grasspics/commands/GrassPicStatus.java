@@ -33,7 +33,9 @@ public class GrassPicStatus extends JRawCommand {
                     .append("\n图片总大小：").append(jsonObject.getString("totalImageSizeHuman"))
                     .append("\n审核队列：").append(jsonObject.getString("waitImage"))
                     .append("\n插件版本：")
-                    .append(GrassPictures.VERSION).append(GrassPictures.VERSION.equals(GrassPictures.latestVersion) ? "" : "（发现更新）")
+                    .append(GrassPictures.VERSION).append(
+                            (GrassPictures.VERSION.equals(GrassPictures.latestVersion) || GrassPictures.latestVersion == null)
+                                    ? "" : "（发现更新）")
                     .build();
 
             sender.sendMessage(GrassPictures.wrap(context, message));

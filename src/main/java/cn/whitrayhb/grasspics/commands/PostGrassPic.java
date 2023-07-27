@@ -247,7 +247,9 @@ public class PostGrassPic extends JRawCommand {
                 PluginData.INSTANCE.savedQQ.get().add(uid);
                 sender.sendMessage(GrassPictures.wrap(context, "这是您第一次向公共投稿通道投稿，请认真阅读以下内容：\n\n" +
                         GrassPictures.TEXT_RULES +
-                        "\n\n如果您投稿违规内容，则机器人的 IP 可能会被封禁。"));
+                        "\n\n如果您投稿违规内容，则机器人的 IP 可能会被封禁。\n" +
+                        "在您熟读以上内容后，请再次发送投稿命令进行投稿。"));
+                return;
             }
         } else {
             String SIMS_USER = SimSoftSecureConfig.INSTANCE.user.get();
@@ -263,9 +265,14 @@ public class PostGrassPic extends JRawCommand {
         MessageChain originalMessage = context.getOriginalMessage();
         QuoteReply quote = (QuoteReply) originalMessage.stream().filter(m -> m instanceof QuoteReply).findFirst().orElse(null);
         if (quote != null && PluginConfig.INSTANCE.isQuotePostEnabled.get()) {
+            // Disallow replying others' messages
+            if (quote.getSource().getFromId() != sender.getUser().getId()) {
+                sender.sendMessage(GrassPictures.wrap(context, "为减少打扰，现在已无法通过回复别人的消息来投稿草图。"));
+                return;
+            }
+
             String id = sender.getSubject().getId() + "-" + quote.getSource().getIds()[0];
             Image image = imageCachePool.getOrDefault(id, null);
-
             if (image == null) {
                 sender.sendMessage(GrassPictures.wrap(context, "该图片未在缓存中，请重新在聊群中发送！"));
                 return;
@@ -319,7 +326,6 @@ public class PostGrassPic extends JRawCommand {
             }
 
             SingleMessage imageMessage = message.stream().filter(msg -> msg instanceof Image).findFirst().orElse(null);
-
             if (imageMessage == null) {
                 sender.sendMessage("您发送的不是图片哦, 已经取消投稿。");
                 nextAreYou.remove(uid);

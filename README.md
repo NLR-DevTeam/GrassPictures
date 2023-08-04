@@ -67,8 +67,10 @@
 根目录下的 `plugins` 目录中；
   
   4）参阅[权限节点说明文档](https://docs.mirai.mamoe.net/console/Permissions.html)，授予成员相应的权限节点；
-  
-  5）开始生草吧！
+
+  5）如需使用投稿功能，请前往 [NLR Pass 管理页](https://pass.nlrdev.top) 申请接口密钥并填入配置文件的 `NLRPassToken` 中；
+
+  6）开始生草吧！
 - **草图投稿是什么? 如何使用?**
   
   目前 Mirai Console 插件中投稿功能已开放公众投稿通道，其投稿要求请参阅服务条款，请不要投稿违规图片（您的 Bot

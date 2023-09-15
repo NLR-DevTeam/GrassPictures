@@ -11,7 +11,7 @@
 
 ## 服务条款
 
-使用本插件即代表您已阅读并同意[草图服务条款](https://grass.nlrdev.top/tos)。
+使用本插件即代表您已阅读并同意 [草图服务条款](https://grass.nlrdev.top/tos)。
 
 ## 相关链接
 
@@ -66,7 +66,7 @@
   3）在 [Releases](//github.com/NLR-DevTeam/GrassPictures/releases) 页面下载最新的 `.jar` 文件，放入 MCL
 根目录下的 `plugins` 目录中；
   
-  4）参阅[权限节点说明文档](https://docs.mirai.mamoe.net/console/Permissions.html)，授予成员相应的权限节点；
+  4）参阅 [权限节点说明文档](https://docs.mirai.mamoe.net/console/Permissions.html) 或 [傻瓜式权限节点配置](https://github.com/orgs/NLR-DevTeam/discussions/7) 授予成员相应的权限节点；
 
   5）如需使用投稿功能，请前往 [NLR Pass 管理页](https://pass.nlrdev.top) 申请接口密钥并填入配置文件的 `NLRPassToken` 中；
 

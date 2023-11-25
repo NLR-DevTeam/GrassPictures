@@ -1,4 +1,5 @@
 <h1 align=center><img src="https://asset.simsoft.top/products/grass/icon.webp" width="120px" height="120px"><br>草图大全</h1>
+<h2 align=center>草图大全由于不可抗因素已经停止运营 !</h2>
 <p align=center><b>🤖 Mirai Console Plugin 🤖</b></p>
 
 <p align=center>一个 Mirai Console 插件，可在 QQ 群聊中接入 NLR 草图大全的服务</p>
